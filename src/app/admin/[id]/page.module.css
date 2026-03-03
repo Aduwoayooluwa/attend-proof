@@ -1,0 +1,324 @@
+.page {
+    min-height: 100dvh;
+    background: var(--bg);
+    padding: 32px 20px 60px;
+}
+
+.inner {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.titleContainer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: all var(--transition);
+}
+
+.back:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--bg-input);
+}
+
+.title {
+    font-size: 24px;
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    font-weight: bold;
+    color: var(--primary);
+    margin: 0;
+}
+
+.exportBtn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+}
+
+.exportBtn:hover {
+    background: rgba(26, 46, 34, 0.04);
+}
+
+.tableWrapper {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: auto;
+    box-shadow: var(--shadow);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.table th {
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table tr:hover td {
+    background: rgba(26, 46, 34, 0.02);
+}
+
+.code {
+    font-family: 'DM Serif Display', monospace;
+    font-size: 13px;
+    background: var(--bg-input);
+    padding: 3px 8px;
+    border-radius: 6px;
+}
+
+.verified {
+    color: var(--success);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.unverified {
+    color: var(--error);
+    background: var(--error-bg);
+    font-size: 13px;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.pageBtn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--primary);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+}
+
+.pageBtn:hover:not(:disabled) {
+    background: var(--bg-input);
+    border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.pageBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: transparent;
+}
+
+.pageInfo {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+/* Base styles for S/N column on Desktop */
+.sn {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 13px;
+    padding-right: 16px;
+    width: 50px;
+}
+
+.time {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.loader {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 40px auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 60px 0;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .page {
+        padding: 16px 8px 32px;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .titleContainer {
+        width: 100%;
+        gap: 12px;
+    }
+
+    .title {
+        font-size: 20px;
+    }
+
+    .exportBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .tableWrapper {
+        background: transparent;
+        box-shadow: none;
+        border: none;
+        margin: 0;
+        width: 100%;
+        border-radius: 0;
+    }
+
+    /* Mobile specific tweaks for S/N to act like a card header label */
+    .table td[data-label="S/N"] {
+        background: var(--bg-input);
+        margin: -16px -16px 16px -16px;
+        /* Break out of parent padding */
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        border-radius: 12px 12px 0 0;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .table td[data-label="S/N"]::before {
+        content: '#';
+        color: var(--gold);
+        font-size: 14px;
+    }
+
+    .table td[data-label="S/N"] span {
+        font-weight: bold;
+        color: var(--primary);
+        font-size: 14px;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table tr {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .table tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .table td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .table td:first-child {
+        padding-top: 0;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        text-align: left;
+    }
+}

@@ -1,0 +1,77 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.iconWrapper {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--success-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-bottom: 8px;
+}
+
+.icon {
+    color: var(--success);
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.title {
+    font-size: 36px;
+    color: var(--primary);
+    animation: slideUp 0.4s ease 0.2s both;
+}
+
+.name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    animation: slideUp 0.4s ease 0.3s both;
+}
+
+.session {
+    color: var(--text-muted);
+    font-size: 14px;
+    animation: slideUp 0.4s ease 0.35s both;
+}
+
+.badge {
+    background: var(--primary);
+    color: #FAF8F5;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 8px;
+    animation: slideUp 0.4s ease 0.4s both;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(12px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

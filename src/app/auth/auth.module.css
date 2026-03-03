@@ -1,0 +1,76 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(760px 360px at 95% -10%, rgba(201, 169, 110, 0.14), transparent 60%),
+    radial-gradient(540px 320px at -10% 20%, rgba(26, 46, 34, 0.08), transparent 65%),
+    var(--bg);
+}
+
+.card {
+  width: min(460px, 100%);
+  background: color-mix(in srgb, var(--bg-card) 94%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 1.4rem;
+  box-shadow: var(--shadow);
+}
+
+.header {
+  margin-bottom: 1.1rem;
+}
+
+.title {
+  color: var(--primary);
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(1.5rem, 3vw, 1.95rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  margin-top: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.error {
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+  border-radius: 12px;
+  padding: 0.7rem 0.75rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.form {
+  display: grid;
+  gap: 0.88rem;
+}
+
+.submitBtn {
+  margin-top: 0.45rem;
+}
+
+.footer {
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.footerLink {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--gold) 62%, transparent);
+  text-underline-offset: 2px;
+}
+
+.footerLink:hover {
+  color: var(--primary-light);
+}

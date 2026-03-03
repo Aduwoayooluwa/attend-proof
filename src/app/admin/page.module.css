@@ -1,0 +1,426 @@
+/* --- MODAL STYLES --- */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 15, 12, 0.4);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 24px;
+    animation: fadeIn 0.3s ease;
+}
+
+.modalContent {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modalHeader {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.formTitle {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0;
+    font-family: var(--font-heading);
+}
+
+.closeParamsBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.closeParamsBtn:hover {
+    color: var(--error);
+    background: var(--error-bg);
+}
+
+.modalBody {
+    padding: 32px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* --- LAYOUT STYLES --- */
+.layoutHeader {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.layoutTitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--primary);
+    font-family: var(--font-heading);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.layoutSubtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.signOutBtn {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.signOutBtn:hover {
+    background: rgba(26, 46, 34, 0.04);
+}
+
+.layoutMain {
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.formActions {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.formActions>* {
+    flex: 1;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+}
+
+.sessionCard {
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.sessionCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    border-color: rgba(26, 46, 34, 0.1);
+}
+
+.sessionInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+.sessionName {
+    font-size: 17px;
+    color: var(--primary);
+}
+
+.meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.viewLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 500;
+    transition: color var(--transition);
+    margin-top: 4px;
+}
+
+.viewLink:hover {
+    color: var(--primary);
+}
+
+.cardActions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.actionBtn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text-base);
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.actionBtn:hover {
+    background: var(--bg-input);
+}
+
+.actionBtn.delete {
+    color: #e03131;
+    border-color: #fca5a5;
+    background: #fef2f2;
+}
+
+.actionBtn.delete:hover {
+    background: #fee2e2;
+}
+
+.qrWrapper {
+    background: var(--bg-input);
+    border-radius: 12px;
+    padding: 12px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.qrDownloadBtn {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--primary);
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background var(--transition);
+}
+
+.qrDownloadBtn:hover {
+    background: rgba(26, 46, 34, 0.08);
+}
+
+.loader {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 40px auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.empty {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 60px 0;
+    font-size: 14px;
+}
+
+/* Login */
+.loginPage {
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 30% 20%, rgba(201, 169, 110, 0.1) 0%, transparent 60%);
+}
+
+.loginCard {
+    background: var(--bg-card);
+    border-radius: 24px;
+    box-shadow: var(--shadow-lg);
+    padding: 48px 36px;
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+.loginTitle {
+    font-size: 28px;
+    color: var(--primary);
+    margin: 12px 0 8px;
+}
+
+.loginDesc {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 28px;
+}
+
+.loginForm {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-align: left;
+}
+
+@media (max-width: 768px) {
+    .layoutHeader {
+        padding: 12px 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .layoutTitle {
+        font-size: 20px;
+    }
+
+    .layoutMain {
+        padding: 16px 8px;
+    }
+
+    .signOutBtn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .modalContent {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .modalHeader {
+        padding: 16px;
+    }
+
+    .modalBody {
+        padding: 16px;
+    }
+
+    .row {
+        grid-template-columns: 1fr;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .sessionCard {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        padding: 20px 16px;
+        gap: 16px;
+    }
+
+    .qrWrapper {
+        width: 100%;
+    }
+
+    .meta {
+        align-items: flex-start;
+    }
+
+    .cardActions {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .actionBtn {
+        flex: 1;
+        justify-content: center;
+    }
+}

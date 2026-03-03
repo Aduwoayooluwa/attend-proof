@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AttendProof logo">
+  <defs>
+    <linearGradient id="ap-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#15281E" />
+      <stop offset="1" stop-color="#1F3A2B" />
+    </linearGradient>
+    <linearGradient id="ap-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D6BA84" />
+      <stop offset="1" stop-color="#C9A96E" />
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="128" fill="url(#ap-bg)" />
+
+  <path
+    d="M256 88c-75 0-136 56-136 126 0 90 104 187 122 203 8 7 20 7 28 0 18-16 122-113 122-203 0-70-61-126-136-126Z"
+    fill="none"
+    stroke="url(#ap-gold)"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <circle cx="256" cy="214" r="52" fill="none" stroke="#F6F2EA" stroke-width="22" />
+  <path
+    d="M224 292l26 26 48-48"
+    fill="none"
+    stroke="#F6F2EA"
+    stroke-width="22"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

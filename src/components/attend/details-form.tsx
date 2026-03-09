@@ -1,19 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
-import { startRegistration } from '@simplewebauthn/browser';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import styles from './details-form.module.css';
 
 interface DetailsFormProps {
-  tempUserId: string;
   sessionToken: string;
   onSuccess: (name: string) => void;
   onError: (reason: string) => void;
 }
 
-export function DetailsForm({ tempUserId, sessionToken, onSuccess, onError }: DetailsFormProps) {
+export function DetailsForm({ sessionToken, onSuccess, onError }: DetailsFormProps) {
   const [fullName, setFullName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [errors, setErrors] = useState<{ fullName?: string; identifier?: string }>({});
@@ -22,7 +21,7 @@ export function DetailsForm({ tempUserId, sessionToken, onSuccess, onError }: De
   const validate = () => {
     const e: typeof errors = {};
     if (!fullName.trim()) e.fullName = 'Full name is required';
-    if (!identifier.trim()) e.identifier = 'ID is required';
+    if (!identifier.trim()) e.identifier = 'Attendee ID is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -33,42 +32,24 @@ export function DetailsForm({ tempUserId, sessionToken, onSuccess, onError }: De
     setLoading(true);
 
     try {
-      const credentialId = localStorage.getItem('nysc_credential_id');
-      if (!credentialId) throw new Error('No credential found. Please restart.');
-
-      const optRes = await fetch(`/api/webauthn/register/options?userId=${tempUserId}&userName=${encodeURIComponent(fullName)}`);
-      if (!optRes.ok) {
-        const err = await optRes.json();
-        throw new Error(err.error || 'Failed to get registration options');
-      }
-      const options = await optRes.json();
-
-      const credential = await startRegistration({ optionsJSON: options });
-
-      const deviceHash = await (await import('@/lib/fingerprint')).getDeviceHash();
-
-      const verifyRes = await fetch('/api/webauthn/register/verify', {
+      const res = await fetch('/api/attend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: tempUserId,
+          sessionToken,
           fullName: fullName.trim(),
           identifier: identifier.trim().toUpperCase(),
-          credential,
-          sessionToken,
-          deviceHash,
           userLat: (window as any).__nysc_lat,
           userLng: (window as any).__nysc_lng,
         }),
       });
 
-      const result = await verifyRes.json();
-      if (!verifyRes.ok) throw new Error(result.error);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error);
 
-      localStorage.setItem('nysc_attendee_id', result.attendeeId);
       onSuccess(fullName.trim());
     } catch (err: any) {
-      onError(err.message ?? 'Submission failed');
+      onError(err.message ?? 'Submission failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +58,7 @@ export function DetailsForm({ tempUserId, sessionToken, onSuccess, onError }: De
   return (
     <div className={styles.wrapper}>
       <h2 className={styles.title}>Your Details</h2>
-      <p className={styles.description}>Almost done — fill in your information.</p>
+      <p className={styles.description}>Almost done — fill in your information to complete check-in.</p>
 
       <form onSubmit={handleSubmit} className={styles.form}>
         <Input

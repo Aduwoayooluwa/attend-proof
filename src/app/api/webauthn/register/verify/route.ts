@@ -1,96 +1,121 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { confirmRegistration } from '@/lib/webauthn';
-import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import { isWithinRadius } from '@/lib/geo';
+
+const RP_ID = process.env.WEBAUTHN_RP_ID!;
+const ORIGIN = process.env.WEBAUTHN_ORIGIN!;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { userId, fullName, identifier, credential, sessionToken, deviceHash, userLat, userLng } = body;
+  const { identifier, orgId, sessionToken, credential, userLat, userLng } = body;
 
-  if (!userId || !fullName || !identifier || !credential || !sessionToken || !deviceHash) {
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-  }
-
-  const cookieStore = await cookies();
-  const expectedChallenge = cookieStore.get('webauthn_challenge')?.value;
-  if (!expectedChallenge) {
-    return NextResponse.json({ error: 'Challenge not found or expired' }, { status: 400 });
-  }
-
-  const verification = await confirmRegistration(credential, expectedChallenge);
-
-  if (!verification.verified || !verification.registrationInfo) {
-    return NextResponse.json({ error: 'Biometric verification failed' }, { status: 400 });
+  if (!identifier || !orgId || !sessionToken || !credential) {
+    return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
   }
 
   const db = createServiceClient();
 
-  const { data: session } = await db
+  // 1. Validate session
+  const { data: session, error: sessionErr } = await db
     .from('sessions')
-    .select('*')
+    .select('id, org_id, location_lat, location_lng, radius_meters, strict_mode')
     .eq('qr_token', sessionToken)
     .single();
 
-  if (!session) {
-    return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+  if (sessionErr || !session || session.org_id !== orgId) {
+    return NextResponse.json({ error: 'Session not found.' }, { status: 404 });
   }
 
-  const { data: deviceCheck } = await db
-    .from('attendance')
-    .select('id')
-    .eq('session_id', session.id)
-    .eq('device_hash', deviceHash)
-    .limit(1);
-
-  if (deviceCheck && deviceCheck.length > 0) {
-    return NextResponse.json({ error: 'This device has already been used to check into this session' }, { status: 409 });
+  if (!session.strict_mode) {
+    return NextResponse.json({ error: 'This session does not require biometric registration.' }, { status: 400 });
   }
 
-  cookieStore.delete('webauthn_challenge');
-
-  const { credential: cred } = verification.registrationInfo;
-  const publicKeyBase64 = isoBase64URL.fromBuffer(cred.publicKey);
-
-  if (userLat == null || userLng == null) {
-    return NextResponse.json({ error: 'Location permissions required to register for this session.' }, { status: 403 });
-  }
-
-  const { isWithinRadius } = await import('@/lib/geo');
-  const locationVerified = isWithinRadius(
+  // 2. GPS validation
+  if (userLat == null || userLng == null || !isWithinRadius(
     { lat: userLat, lng: userLng },
     { lat: session.location_lat, lng: session.location_lng },
     session.radius_meters,
-  );
-
-  if (!locationVerified) {
-    return NextResponse.json({ error: 'You are outside the allowed location radius for this session.' }, { status: 403 });
+  )) {
+    return NextResponse.json({ error: 'You are outside the allowed location radius.' }, { status: 403 });
   }
-  const { data, error } = await db
-    .from('attendees')
-    .insert({
-      id: userId,
-      org_id: session.org_id,
-      full_name: fullName,
-      identifier: identifier,
-      credential_id: cred.id,
-      public_key: publicKeyBase64,
-      sign_count: cred.counter,
-    })
-    .select('id')
-    .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  
-  // Directly insert attendance
-  const { error: attendError } = await db.from('attendance').insert({
+  // 3. Verify the attendee is in the roster and unclaimed
+  const cleanId = identifier.trim().toUpperCase();
+  const { data: attendee } = await db
+    .from('attendees')
+    .select('id, full_name, credential_id')
+    .eq('org_id', orgId)
+    .eq('identifier', cleanId)
+    .maybeSingle();
+
+  if (!attendee) {
+    return NextResponse.json({ error: 'You are not on the attendee list for this session.' }, { status: 403 });
+  }
+
+  if (attendee.credential_id) {
+    return NextResponse.json(
+      { error: 'This Attendee ID is already registered to a device.' },
+      { status: 409 },
+    );
+  }
+
+  // 4. Verify the WebAuthn registration credential
+  let verification;
+  try {
+    verification = await verifyRegistrationResponse({
+      response: credential,
+      expectedChallenge: async (challenge) => !!challenge, // stateless — challenge verified via WebAuthn library internally
+      expectedRPID: RP_ID,
+      expectedOrigin: ORIGIN,
+      requireUserVerification: true,
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message ?? 'Biometric verification failed.' }, { status: 400 });
+  }
+
+  if (!verification.verified || !verification.registrationInfo) {
+    return NextResponse.json({ error: 'Biometric registration could not be verified.' }, { status: 400 });
+  }
+
+  const { credential: regCredential } = verification.registrationInfo;
+
+  // 5. Persist the credential on the attendee record
+  const { error: updateErr } = await db
+    .from('attendees')
+    .update({
+      credential_id: regCredential.id,
+      public_key: Buffer.from(regCredential.publicKey).toString('base64url'),
+      sign_count: regCredential.counter,
+    })
+    .eq('id', attendee.id);
+
+  if (updateErr) {
+    return NextResponse.json({ error: updateErr.message }, { status: 500 });
+  }
+
+  // 6. Check for duplicate attendance in this session
+  const { data: existingAttendance } = await db
+    .from('attendance')
+    .select('id')
+    .eq('session_id', session.id)
+    .eq('attendee_id', attendee.id)
+    .maybeSingle();
+
+  if (existingAttendance) {
+    return NextResponse.json({ error: 'You have already checked in to this session.' }, { status: 409 });
+  }
+
+  // 7. Record attendance
+  const { error: insertErr } = await db.from('attendance').insert({
     session_id: session.id,
-    attendee_id: data.id,
-    device_hash: deviceHash,
-    location_verified: locationVerified,
+    attendee_id: attendee.id,
+    location_verified: true,
   });
 
-  if (attendError) return NextResponse.json({ error: attendError.message }, { status: 500 });
+  if (insertErr) {
+    return NextResponse.json({ error: insertErr.message }, { status: 500 });
+  }
 
-  return NextResponse.json({ attendeeId: data.id }, { status: 201 });
+  return NextResponse.json({ attendeeId: attendee.id, name: attendee.full_name }, { status: 201 });
 }

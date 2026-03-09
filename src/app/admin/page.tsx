@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Plus, ExternalLink, MapPin, Calendar, Trash2, Edit2, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Plus, ExternalLink, MapPin, Calendar, Trash2, Edit2, ChevronLeft, ChevronRight, X, Lock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Session } from '@/types';
@@ -22,7 +22,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150' });
+  const [form, setForm] = useState({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150', strict_mode: false });
   const [formLoading, setFormLoading] = useState(false);
   
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,6 +58,7 @@ export default function AdminPage() {
         location_lat: parseFloat(form.location_lat),
         location_lng: parseFloat(form.location_lng),
         radius_meters: parseInt(form.radius_meters),
+        strict_mode: form.strict_mode,
       }),
     });
     
@@ -65,7 +66,7 @@ export default function AdminPage() {
       toast.success(editingId ? 'Session updated successfully' : 'Session created successfully');
       setShowForm(false);
       setEditingId(null);
-      setForm({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150' });
+      setForm({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150', strict_mode: false });
       await loadSessions(1);
       setCurrentPage(1);
     } else {
@@ -117,6 +118,7 @@ export default function AdminPage() {
       location_lat: session.location_lat?.toString() || '',
       location_lng: session.location_lng?.toString() || '',
       radius_meters: session.radius_meters?.toString() || '150',
+      strict_mode: session.strict_mode ?? false,
     });
     setEditingId(session.id);
     setShowForm(true);
@@ -141,9 +143,12 @@ export default function AdminPage() {
   return (
     <div>
       <div className={`container container--wide`}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 10, marginBottom: 24 }}>
+          <Link href="/admin/roster" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '14px 24px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)', fontSize: 14, fontWeight: 500, textDecoration: 'none', transition: 'all 0.2s' }}>
+            <Users size={14} /> Manage Roster
+          </Link>
           <div style={{ width: 'max-content' }}>
-            <Button onClick={() => { setEditingId(null); setForm({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150' }); setShowForm(true); }}>
+            <Button onClick={() => { setEditingId(null); setForm({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150', strict_mode: false }); setShowForm(true); }}>
               <Plus size={16} /> New Session
             </Button>
           </div>
@@ -171,6 +176,23 @@ export default function AdminPage() {
                     />
                   </div>
                   <Input id="s-radius" label="Radius (metres)" type="number" value={form.radius_meters} onChange={(e) => setForm({ ...form, radius_meters: e.target.value })} required />
+
+                  {/* Strict Mode Toggle */}
+                  <div className={styles.toggleRow}>
+                    <div className={styles.toggleInfo}>
+                      <span className={styles.toggleLabel}><Lock size={13} /> Strict Mode</span>
+                      <p className={styles.toggleDesc}>Only pre-approved attendee IDs can check in. Requires a roster to be uploaded.</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={form.strict_mode}
+                      className={`${styles.toggleBtn} ${form.strict_mode ? styles.toggleOn : ''}`}
+                      onClick={() => setForm({ ...form, strict_mode: !form.strict_mode })}
+                    >
+                      <span className={styles.toggleThumb} />
+                    </button>
+                  </div>
                   <div className={styles.formActions}>
                     <Button type="button" variant="ghost" onClick={() => { setShowForm(false); setEditingId(null); }}>Cancel</Button>
                     <Button type="submit" loading={formLoading}>{editingId ? 'Save Changes' : 'Create & Generate QR'}</Button>
@@ -190,7 +212,12 @@ export default function AdminPage() {
             {sessions.map((s) => (
               <div key={s.id} className={styles.sessionCard}>
                 <div className={styles.sessionInfo}>
-                  <h3 className={styles.sessionName}>{s.name}</h3>
+                  <div className={styles.sessionNameRow}>
+                    <h3 className={styles.sessionName}>{s.name}</h3>
+                    {s.strict_mode && (
+                      <span className={styles.strictBadge}><Lock size={10} /> Strict</span>
+                    )}
+                  </div>
                   <div className={styles.meta}>
                     <span><Calendar size={13} /> {s.date}</span>
                     <span><MapPin size={13} /> {s.radius_meters}m radius</span>

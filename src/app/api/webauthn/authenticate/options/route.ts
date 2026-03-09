@@ -1,27 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { generateAuthenticationOptions } from '@simplewebauthn/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { buildAuthenticationOptions } from '@/lib/webauthn';
+
+const RP_ID = process.env.WEBAUTHN_RP_ID!;
 
 export async function GET(req: NextRequest) {
-  const credentialId = req.nextUrl.searchParams.get('credentialId');
+  const { searchParams } = new URL(req.url);
+  const credentialId = searchParams.get('credentialId');
 
   if (!credentialId) {
-    return NextResponse.json({ error: 'Missing credentialId' }, { status: 400 });
+    return NextResponse.json({ error: 'credentialId is required.' }, { status: 400 });
   }
 
-  // We don't verify the credential ID here because base64url padding can differ
-  // between the browser and the database. We leave the strict check to the verify step.
+  const db = createServiceClient();
 
-  const options = await buildAuthenticationOptions(credentialId);
-  
-  const cookieStore = await cookies();
-  cookieStore.set('webauthn_auth_challenge', options.challenge, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 300,
+  // Look up the attendee by their stored credential ID
+  const { data: attendee } = await db
+    .from('attendees')
+    .select('id, credential_id, public_key, sign_count')
+    .eq('credential_id', credentialId)
+    .maybeSingle();
+
+  if (!attendee) {
+    return NextResponse.json({ error: 'Device not recognised. Please register first.' }, { status: 404 });
+  }
+
+  const options = await generateAuthenticationOptions({
+    rpID: RP_ID,
+    allowCredentials: [{ id: credentialId }],
+    userVerification: 'required',
   });
 
-  return NextResponse.json({ ...options, attendeeId: credentialId }); // pass it through temporarily
+  return NextResponse.json(options);
 }

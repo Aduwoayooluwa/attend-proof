@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error, count } = await db
     .from('sessions')
-    .select('id, name, date, location_lat, location_lng, qr_token, radius_meters, created_at', { count: 'exact' })
+    .select('id, name, date, location_lat, location_lng, qr_token, radius_meters, strict_mode, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, date, location_lat, location_lng, radius_meters } = body;
+  const { name, date, location_lat, location_lng, radius_meters, strict_mode } = body;
 
   if (!name || !date || location_lat == null || location_lng == null) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
       date,
       location_lat,
       location_lng,
-      radius_meters: radius_meters ?? 150
+      radius_meters: radius_meters ?? 150,
+      strict_mode: strict_mode ?? false,
     })
     .select()
     .single();

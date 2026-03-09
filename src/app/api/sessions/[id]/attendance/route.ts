@@ -16,9 +16,9 @@ export async function GET(
 
   const { data, error, count } = await db
     .from('attendance')
-    .select('id, device_hash, location_verified, verified_at, attendees(full_name, identifier)', { count: 'exact' })
+    .select('id, location_verified, verified_at, attendees(full_name, identifier)', { count: 'exact' })
     .eq('session_id', id)
-    .order('verified_at', { ascending: false })
+    .order('verified_at', { ascending: true })
     .range(from, to);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

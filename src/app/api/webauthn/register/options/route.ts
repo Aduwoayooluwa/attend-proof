@@ -1,35 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { generateRegistrationOptions } from '@simplewebauthn/server';
 import { createServiceClient } from '@/lib/supabase/server';
-import { buildRegistrationOptions } from '@/lib/webauthn';
+
+const RP_ID = process.env.WEBAUTHN_RP_ID!;
+const RP_NAME = process.env.WEBAUTHN_RP_NAME ?? 'AttendProof';
 
 export async function GET(req: NextRequest) {
-  const userId = req.nextUrl.searchParams.get('userId');
-  const userName = req.nextUrl.searchParams.get('userName');
+  const { searchParams } = new URL(req.url);
+  const orgId = searchParams.get('orgId');
+  const identifier = searchParams.get('identifier')?.trim().toUpperCase();
 
-  if (!userId || !userName) {
-    return NextResponse.json({ error: 'Missing userId or userName' }, { status: 400 });
+  if (!orgId || !identifier) {
+    return NextResponse.json({ error: 'orgId and identifier are required.' }, { status: 400 });
   }
 
   const db = createServiceClient();
-  const { data: existing } = await db
-    .from('attendees')
-    .select('credential_id')
-    .eq('id', userId)
-    .single();
 
-  if (existing) {
-    return NextResponse.json({ error: 'Already registered' }, { status: 409 });
+  // 1. Check the identifier exists in the org's roster
+  const { data: attendee, error: rosterError } = await db
+    .from('attendees')
+    .select('id, full_name, credential_id')
+    .eq('org_id', orgId)
+    .eq('identifier', identifier)
+    .maybeSingle();
+
+  if (rosterError || !attendee) {
+    return NextResponse.json({ error: 'You are not on the attendee list for this session.' }, { status: 403 });
   }
 
-  const options = await buildRegistrationOptions(userId, userName);
-  
-  const cookieStore = await cookies();
-  cookieStore.set('webauthn_challenge', options.challenge, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 300,
+  // 2. Check the identifier is not already claimed by another device
+  if (attendee.credential_id) {
+    return NextResponse.json(
+      { error: 'This Attendee ID is already registered to a device. Please use that device to check in.' },
+      { status: 409 },
+    );
+  }
+
+  // 3. Generate WebAuthn registration options
+  const options = await generateRegistrationOptions({
+    rpName: RP_NAME,
+    rpID: RP_ID,
+    userName: `${identifier}@org-${orgId.slice(0, 8)}`,
+    userDisplayName: attendee.full_name,
+    attestationType: 'none',
+    authenticatorSelection: {
+      authenticatorAttachment: 'platform',
+      userVerification: 'required',
+      residentKey: 'preferred',
+    },
   });
 
   return NextResponse.json(options);

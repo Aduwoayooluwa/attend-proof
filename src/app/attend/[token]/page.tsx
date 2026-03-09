@@ -22,7 +22,7 @@ export default function AttendPage({ params }: AttendPageProps) {
   const [step, setStep] = useState<Step>('loading');
   const [errorReason, setErrorReason] = useState('');
   const [successName, setSuccessName] = useState('');
-  const [tempUserId, setTempUserId] = useState('');
+  const [strictMode, setStrictMode] = useState(false);
 
   useEffect(() => {
     params.then(({ token: t }) => {
@@ -32,6 +32,7 @@ export default function AttendPage({ params }: AttendPageProps) {
         .then((data) => {
           if (data.error) { setErrorReason(data.error); setStep('error'); return; }
           setSession(data);
+          setStrictMode(data.strict_mode === true);
           setStep('location');
         })
         .catch(() => { setErrorReason('Could not load session.'); setStep('error'); });
@@ -41,7 +42,8 @@ export default function AttendPage({ params }: AttendPageProps) {
   const handleLocationPass = (lat: number, lng: number) => {
     (window as any).__nysc_lat = lat;
     (window as any).__nysc_lng = lng;
-    setStep('biometric');
+    // Branch: strict mode → biometric, open mode → details form
+    setStep(strictMode ? 'biometric' : 'details');
   };
 
   const handleLocationFail = (reason: string) => {
@@ -49,14 +51,9 @@ export default function AttendPage({ params }: AttendPageProps) {
     setStep('error');
   };
 
-  const handleBiometricSuccess = (attendeeId: string) => {
-    setSuccessName(localStorage.getItem('nysc_name') ?? 'Attendee');
+  const handleDetailsSuccess = (name: string) => {
+    setSuccessName(name);
     setStep('success');
-  };
-
-  const handleNeedDetails = (userId: string) => {
-    setTempUserId(userId);
-    setStep('details');
   };
 
   const handleError = (reason: string) => {
@@ -64,13 +61,8 @@ export default function AttendPage({ params }: AttendPageProps) {
     setStep('error');
   };
 
-  const handleDetailsSuccess = (name: string) => {
-    localStorage.setItem('nysc_name', name);
-    setSuccessName(name);
-    setStep('success');
-  };
-
-  const stepNumber = { loading: 0, location: 1, biometric: 2, details: 3, success: 4, error: 4 }[step];
+  const stepMap: Record<Step, number> = { loading: 0, location: 1, biometric: 2, details: 2, success: 3, error: 3 };
+  const stepNumber = stepMap[step];
 
   if (step === 'loading') {
     return (
@@ -91,24 +83,23 @@ export default function AttendPage({ params }: AttendPageProps) {
         </header>
 
         {step !== 'success' && step !== 'error' && (
-          <StepIndicator total={3} current={stepNumber} />
+          <StepIndicator total={2} current={stepNumber} />
         )}
 
         <main className={styles.main}>
           {step === 'location' && (
             <LocationGate onPass={handleLocationPass} onFail={handleLocationFail} />
           )}
-          {step === 'biometric' && (
+          {step === 'biometric' && session && (
             <BiometricStep
               sessionToken={token}
-              onSuccess={handleBiometricSuccess}
-              onNeedDetails={handleNeedDetails}
+              orgId={session.org_id}
+              onSuccess={(name) => { setSuccessName(name); setStep('success'); }}
               onError={handleError}
             />
           )}
           {step === 'details' && (
             <DetailsForm
-              tempUserId={tempUserId}
               sessionToken={token}
               onSuccess={handleDetailsSuccess}
               onError={handleError}

@@ -542,6 +542,18 @@
   gap: 0.9rem;
 }
 
+.lpMobileMenuBtn {
+  display: none;
+}
+
+.lpMobileMenu {
+  display: none;
+}
+
+.lpMobileMenuOpen {
+  display: none;
+}
+
 .lpLoginLink {
   color: var(--text-muted);
   font-size: 0.9rem;
@@ -576,6 +588,7 @@
   display: grid;
   gap: 5rem;
   padding: 2.5rem 0 4.5rem;
+  min-width: 0;
 }
 
 .lpHero {
@@ -584,6 +597,7 @@
   grid-template-columns: 1.1fr 0.9fr;
   gap: 2rem;
   align-items: start;
+  min-width: 0;
 }
 
 .lpHeroGlow {
@@ -598,6 +612,8 @@
 
 .lpHeroTextBlock {
   padding-top: 1.1rem;
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .lpEyebrow {
@@ -714,6 +730,8 @@
   border-radius: 22px;
   padding: 1.2rem;
   box-shadow: var(--shadow);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .lpPanelHeaderRow {
@@ -803,6 +821,7 @@
 .lpFeaturesSection {
   display: grid;
   gap: 1.5rem;
+  min-width: 0;
 }
 
 .lpSectionHeading {
@@ -867,6 +886,7 @@
   margin-top: 0.45rem;
   color: var(--text-muted);
   font-size: 0.88rem;
+  overflow-wrap: break-word;
 }
 
 .lpCtaSection {
@@ -927,15 +947,6 @@
   border-color: color-mix(in srgb, var(--primary) 28%, var(--border));
 }
 
-.lpFooter {
-  margin-top: auto;
-  border-top: 1px solid var(--border);
-  text-align: center;
-  color: var(--text-light);
-  font-size: 0.8rem;
-  padding: 1.1rem 1rem 1.4rem;
-}
-
 @media (max-width: 1080px) {
   .lpHero {
     grid-template-columns: 1fr;
@@ -952,18 +963,46 @@
   .lpFeaturesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .lpStepsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lpFooterContent {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .lpFooterBrand {
+    max-width: 560px;
+  }
 }
 
 @media (max-width: 760px) {
 
   .lpNav,
   .lpMain {
-    width: min(1160px, 100% - 1.5rem);
+    width: 100%;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    box-sizing: border-box;
   }
 
   .lpMain {
-    gap: 3.3rem;
+    gap: 3rem;
     padding-top: 1.6rem;
+  }
+
+  .lpHeroTitle {
+    font-size: clamp(1.8rem, 8vw, 2.6rem);
+  }
+
+  .lpHeroSummary {
+    font-size: 0.92rem;
+  }
+
+  .lpEyebrow {
+    font-size: 0.74rem;
   }
 
   .lpHeroActions {
@@ -974,14 +1013,54 @@
   .lpPrimaryAction,
   .lpSecondaryAction {
     width: 100%;
+    justify-content: center;
+    font-size: 0.88rem;
+    padding: 0.78rem 1rem;
+  }
+
+  .lpHeroPanel {
+    max-width: 100%;
   }
 
   .lpKpiGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .lpFeaturesGrid {
     grid-template-columns: 1fr;
+  }
+
+  .lpFeatureCard {
+    padding: 1rem;
+  }
+
+  .lpSectionTitle {
+    font-size: clamp(1.35rem, 5.5vw, 1.8rem);
+    word-break: break-word;
+  }
+
+  .lpStepsGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .lpStepsHeader {
+    margin-bottom: 2.2rem;
+    text-align: left;
+  }
+
+  .lpStepsMetaRow {
+    margin-top: -0.8rem;
+    margin-bottom: 1.5rem;
+    justify-content: flex-start;
+  }
+
+  .lpCtaSection {
+    padding: 1.25rem;
+  }
+
+  .lpCtaTitle {
+    font-size: clamp(1.2rem, 5vw, 1.6rem);
   }
 
   .lpCtaActions {
@@ -992,6 +1071,26 @@
   .lpCtaSecondary {
     width: 100%;
     text-align: center;
+    justify-content: center;
+  }
+
+  .lpFooterContent {
+    text-align: left;
+    gap: 28px;
+  }
+
+  .lpFooterBrand {
+    max-width: none;
+  }
+
+  .lpFooterCta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .lpFooterLinks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
   }
 }
 
@@ -1006,5 +1105,572 @@
 
   .lpLoginLink {
     display: none;
+  }
+
+  .lpNavActions {
+    display: none;
+  }
+
+  /* Hamburger Button */
+  .lpMobileMenuBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background var(--transition);
+  }
+
+  .lpMobileMenuBtn:hover {
+    background: color-mix(in srgb, var(--primary) 6%, transparent);
+  }
+
+  /* Mobile Drawer Menu */
+  .lpMobileMenu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: color-mix(in srgb, var(--bg-card) 96%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 12px 24px rgba(26, 46, 34, 0.08);
+    transform: translateY(-10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+  }
+
+  .lpMobileMenuOpen {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .lpMobileNavLink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    color: var(--text);
+    font-size: 1.05rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: background var(--transition);
+  }
+
+  .lpMobileNavLink:hover {
+    background: color-mix(in srgb, var(--primary) 4%, transparent);
+  }
+
+  .lpMobileActionWrap {
+    margin-top: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .lpMobileSignupButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--primary);
+    color: var(--bg-card);
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+
+}
+
+/* STEPS SECTION (HOW IT WORKS) */
+.lpStepsSection {
+  width: 100%;
+  padding-top: 2rem;
+  min-width: 0;
+}
+
+.lpStepsHeader {
+  text-align: left;
+  margin-bottom: 3.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.lpStepsIntro {
+  max-width: 65ch;
+  margin: 0.45rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.lpStepsMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  margin: -1.8rem 0 2rem;
+}
+
+.lpStepsMetaPill {
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--text-muted) 84%, var(--primary));
+  border: 1px solid color-mix(in srgb, var(--gold) 24%, var(--border));
+  background: color-mix(in srgb, var(--bg-card) 70%, transparent);
+  border-radius: 999px;
+  padding: 0.35rem 0.72rem;
+}
+
+.lpStepsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  position: relative;
+}
+
+@media (min-width: 1081px) {
+  .lpStepsGrid::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    z-index: 0;
+  }
+}
+
+.lpStepCard {
+  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.lpStepCard:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--gold) 35%, var(--border));
+  box-shadow: 0 14px 26px rgba(26, 46, 34, 0.08);
+}
+
+.lpStepNumber {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 12%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border));
+  border-radius: 999px;
+  padding: 0.25rem 0.55rem;
+}
+
+.lpStepIconWrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--gold) 20%, var(--border));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  box-shadow: 0 4px 12px rgba(26, 46, 34, 0.05);
+}
+
+.lpStepTitle {
+  font-size: 1.15rem;
+  font-family: 'DM Serif Display', serif;
+  color: var(--primary);
+  margin: 0;
+}
+
+.lpStepDesc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.lpStepNote {
+  margin: 0.05rem 0 0;
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--text-muted) 76%, var(--primary));
+}
+
+.lpStepBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* ENHANCED FOOTER */
+.lpFooter {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 50%, var(--bg));
+  padding: 4rem 1.5rem 1.5rem;
+}
+
+.lpFooterContent {
+  max-width: 1160px;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 360px) 1fr;
+  align-items: start;
+  gap: clamp(24px, 5vw, 56px);
+  margin-bottom: 48px;
+  box-sizing: border-box;
+}
+
+.lpFooterBrand {
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lpFooterCtaWrap {
+  margin-top: 0.4rem;
+}
+
+.lpFooterCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  border-radius: 999px;
+  padding: 0.58rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: var(--bg-card);
+  box-shadow: 0 10px 20px rgba(26, 46, 34, 0.18);
+  transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.lpFooterCta:hover {
+  transform: translateY(-1px);
+  background: var(--primary-light);
+  box-shadow: 0 14px 24px rgba(26, 46, 34, 0.2);
+}
+
+.lpFooterBrandName {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.5rem;
+  color: var(--primary);
+}
+
+.lpFooterTagline {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lpFooterLinks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2.2vw, 38px);
+}
+
+.lpFooterNav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lpFooterNavTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.lpFooterLink {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s, text-decoration-color 0.2s;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.18rem;
+}
+
+.lpFooterLink:hover {
+  color: var(--primary);
+  text-decoration-color: color-mix(in srgb, var(--primary) 42%, transparent);
+}
+
+.lpFooterBottom {
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  text-align: center;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+/* FINAL RESPONSIVE OVERRIDES: HOW IT WORKS + FOOTER */
+@media (max-width: 1200px) {
+  .lpStepsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lpFooterContent {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .lpFooterBrand {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 820px) {
+  .lpStepsSection {
+    padding-top: 1rem;
+  }
+
+  .lpStepsHeader {
+    margin-bottom: 1.6rem;
+    gap: 0.35rem;
+  }
+
+  .lpStepsIntro {
+    font-size: 0.88rem;
+  }
+
+  /* Compact inline pills with dot separators */
+  .lpStepsMetaRow {
+    justify-content: flex-start;
+    margin: 0 0 1.2rem;
+    gap: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .lpStepsMetaRow::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lpStepsMetaPill {
+    border: none;
+    background: none;
+    padding: 0;
+    font-size: 0.76rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+
+  .lpStepsMetaPill:not(:last-child)::after {
+    content: '·';
+    margin: 0 0.55rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .lpStepsGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+
+  /* Vertical timeline line */
+  .lpStepsGrid::before {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    bottom: 1.5rem;
+    left: 0;
+    width: 2px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 40%, var(--border)), color-mix(in srgb, var(--gold) 12%, var(--border)));
+    border-radius: 2px;
+  }
+
+  /* Horizontal card layout: icon left, content right */
+  .lpStepCard {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.9rem;
+    padding: 1rem 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+
+  .lpStepCard:last-child {
+    border-bottom: none;
+  }
+
+  .lpStepCard:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: color-mix(in srgb, var(--border) 60%, transparent);
+  }
+
+  /* Timeline dot on the left */
+  .lpStepCard::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 1.65rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 20%, transparent);
+    transform: translateX(-50%);
+    margin-left: 1px;
+  }
+
+  /* Hide the step number badge on mobile – timeline dot replaces it */
+  .lpStepNumber {
+    display: none;
+  }
+
+  /* Smaller icon */
+  .lpStepIconWrap {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+
+  /* Content stacked to right of icon */
+  .lpStepTitle {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .lpStepDesc {
+    font-size: 0.84rem;
+    margin-top: 0.2rem;
+  }
+
+  .lpStepNote {
+    font-size: 0.76rem;
+    margin-top: 0.15rem;
+    font-style: italic;
+  }
+
+  .lpFooterLinks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .lpFooter {
+    padding: 2.5rem 1.25rem 1.25rem;
+  }
+
+  .lpFooterContent {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .lpFooterBottom {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .lpFooterBrandName {
+    font-size: 1.3rem;
+  }
+
+  .lpFooterTagline {
+    font-size: 0.84rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .lpStepsMetaPill {
+    font-size: 0.72rem;
+  }
+
+  .lpStepIconWrap {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
+  }
+
+  .lpStepTitle {
+    font-size: 0.94rem;
+  }
+
+  .lpStepDesc {
+    font-size: 0.82rem;
+  }
+
+  .lpProofItem {
+    font-size: 0.82rem;
+  }
+
+  .lpFooterCta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .lpFooterLinks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .lpFooterBottom {
+    font-size: 0.78rem;
+  }
+
+  .lpFooterNavTitle {
+    font-size: 0.78rem;
+  }
+
+  .lpFooterLink {
+    font-size: 0.84rem;
   }
 }

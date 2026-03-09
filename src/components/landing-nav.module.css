@@ -1,0 +1,211 @@
+.header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 16px 24px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: opacity 0.2s;
+}
+
+.brand:hover {
+    opacity: 0.8;
+}
+
+.brandIcon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.brandLogo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.brandName {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.01em;
+}
+
+.desktopLinks {
+    display: none;
+    align-items: center;
+    gap: 32px;
+}
+
+.navLink {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.navLink:hover {
+    color: var(--primary);
+}
+
+.navActions {
+    display: none;
+    align-items: center;
+    gap: 16px;
+}
+
+.loginLink {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 10px;
+    transition: background 0.2s;
+}
+
+.loginLink:hover {
+    background: rgba(4, 9, 6, 0.04);
+}
+
+.signupButton {
+    text-decoration: none;
+    background: var(--primary);
+    color: var(--bg-card);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.signupButton:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+.mobileToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.2s;
+}
+
+.mobileToggle:hover {
+    background: rgba(4, 9, 6, 0.04);
+}
+
+.mobileMenu {
+    display: none;
+    /* hidden by default */
+}
+
+/* Mobile Layout */
+@media (max-width: 768px) {
+    .mobileMenu {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        padding: 16px 24px 24px;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobileMenu.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .mobileLinks {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .mobileNavLink {
+        text-decoration: none;
+        color: var(--text);
+        font-size: 16px;
+        font-weight: 500;
+        padding: 8px 0;
+    }
+
+    .mobileDivider {
+        height: 1px;
+        background: var(--border);
+        margin: 8px 0;
+    }
+
+    .mobileLoginLink {
+        text-decoration: none;
+        color: var(--text);
+        font-size: 16px;
+        font-weight: 500;
+        padding: 8px 0;
+    }
+
+    .mobileSignupBtn {
+        text-decoration: none;
+        background: var(--primary);
+        color: var(--bg-card);
+        font-size: 16px;
+        font-weight: 600;
+        padding: 14px;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 8px;
+    }
+}
+
+/* Desktop override */
+@media (min-width: 769px) {
+    .mobileToggle {
+        display: none;
+    }
+
+    .desktopLinks,
+    .navActions {
+        display: flex;
+    }
+}

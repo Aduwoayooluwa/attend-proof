@@ -7,6 +7,7 @@ export interface Session {
   location_lng: number;
   radius_meters: number;
   qr_token: string;
+  strict_mode: boolean;
   created_at: string;
   organizations?: { name: string };
 }
@@ -16,9 +17,9 @@ export interface Attendee {
   org_id: string;
   full_name: string;
   identifier: string;
-  credential_id: string;
-  public_key: string;
-  sign_count: number;
+  credential_id?: string | null;
+  public_key?: string | null;
+  sign_count?: number;
   created_at: string;
 }
 
@@ -26,7 +27,6 @@ export interface Attendance {
   id: string;
   session_id: string;
   attendee_id: string;
-  device_hash: string;
   location_verified: boolean;
   verified_at: string;
 }

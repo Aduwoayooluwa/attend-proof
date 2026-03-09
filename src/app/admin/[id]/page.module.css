@@ -1,7 +1,7 @@
 .page {
     min-height: 100dvh;
     background: var(--bg);
-    padding: 32px 20px 60px;
+    padding: 0 20px 60px;
 }
 
 .inner {
@@ -21,7 +21,7 @@
 
 .titleContainer {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
 }
 
@@ -36,6 +36,7 @@
     border: 1px solid var(--border);
     color: var(--text-muted);
     transition: all var(--transition);
+    margin-top: 4px;
 }
 
 .back:hover {
@@ -71,6 +72,128 @@
 
 .exportBtn:hover {
     background: rgba(26, 46, 34, 0.04);
+}
+
+.exportBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Header action group */
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.manualBtn {
+    background: var(--primary);
+    color: var(--bg-card);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Sora', sans-serif;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+}
+
+.manualBtn:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+}
+
+/* Manual Check-in Modal */
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modalCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.modalTitle {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+    font-family: var(--font-heading);
+    margin: 0;
+}
+
+.closeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    transition: all var(--transition);
+}
+
+.closeBtn:hover {
+    background: var(--bg-input);
+    color: var(--primary);
+}
+
+.modalDesc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.manualForm {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modalActions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+    justify-content: flex-end;
 }
 
 .tableWrapper {
@@ -231,6 +354,13 @@
         font-size: 20px;
     }
 
+    .headerActions {
+        width: 100%;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .manualBtn,
     .exportBtn {
         width: 100%;
         justify-content: center;

@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Download, ChevronLeft, ChevronRight, UserPlus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import type { AttendanceWithAttendee } from '@/types';
 import styles from './page.module.css';
 
@@ -38,6 +39,38 @@ export default function SessionDetailPage({ params }: Props) {
     });
   }, [params, currentPage]);
 
+  // ── Manual Check-in ─────────────────────────────────────────────
+  const [showManual, setShowManual] = useState(false);
+  const [manualName, setManualName] = useState('');
+  const [manualId, setManualId] = useState('');
+  const [manualLoading, setManualLoading] = useState(false);
+
+  const handleManualCheckin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim() || !manualId.trim()) return;
+    setManualLoading(true);
+    try {
+      const res = await fetch(`/api/attend/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName: manualName.trim(), identifier: manualId.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast.success(`${manualName.trim()} checked in manually.`);
+      setManualName('');
+      setManualId('');
+      setShowManual(false);
+      // Reload current page to show new record
+      loadRecords(sessionId, currentPage);
+    } catch (err: any) {
+      toast.error(err.message ?? 'Manual check-in failed.');
+    } finally {
+      setManualLoading(false);
+    }
+  };
+
+  // ── CSV Export ───────────────────────────────────────────────────
   const [exporting, setExporting] = useState(false);
 
   const exportCsv = async () => {
@@ -66,7 +99,7 @@ export default function SessionDetailPage({ params }: Props) {
       a.click();
       URL.revokeObjectURL(url);
       toast.success('Full CSV downloaded successfully');
-    } catch (err) {
+    } catch {
       toast.error('Failed to export CSV');
     } finally {
       setExporting(false);
@@ -84,10 +117,54 @@ export default function SessionDetailPage({ params }: Props) {
             <h1 className={styles.title}>Attendance Records</h1>
           </div>
           
-          <button onClick={exportCsv} className={styles.exportBtn} disabled={exporting}>
-            <Download size={16} /> {exporting ? 'Exporting...' : 'Export Full CSV'}
-          </button>
+          <div className={styles.headerActions}>
+            <button onClick={() => setShowManual(true)} className={styles.manualBtn}>
+              <UserPlus size={16} /> Manual Check-in
+            </button>
+            <button onClick={exportCsv} className={styles.exportBtn} disabled={exporting}>
+              <Download size={16} /> {exporting ? 'Exporting...' : 'Export CSV'}
+            </button>
+          </div>
         </header>
+
+        {/* Manual Check-in Modal */}
+        {showManual && (
+          <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) setShowManual(false); }}>
+            <div className={styles.modalCard}>
+              <div className={styles.modalHeader}>
+                <h2 className={styles.modalTitle}>Manual Check-in</h2>
+                <button className={styles.closeBtn} onClick={() => setShowManual(false)} aria-label="Close">
+                  <X size={18} />
+                </button>
+              </div>
+              <p className={styles.modalDesc}>
+                Use this for attendees who can&apos;t check in on their own device. Their record will be marked as manually verified.
+              </p>
+              <form onSubmit={handleManualCheckin} className={styles.manualForm}>
+                <Input
+                  id="manual-name"
+                  label="Full Name"
+                  placeholder="e.g. Amara Okonkwo"
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  required
+                />
+                <Input
+                  id="manual-id"
+                  label="Attendee ID"
+                  placeholder="e.g. Staff ID / Student ID"
+                  value={manualId}
+                  onChange={(e) => setManualId(e.target.value)}
+                  required
+                />
+                <div className={styles.modalActions}>
+                  <Button type="button" variant="ghost" onClick={() => setShowManual(false)}>Cancel</Button>
+                  <Button type="submit" loading={manualLoading}>Check In</Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className={styles.loader} />
@@ -115,7 +192,7 @@ export default function SessionDetailPage({ params }: Props) {
                     <td data-label="Attendee ID"><span className={styles.code}>{r.attendees?.identifier ?? '—'}</span></td>
                     <td data-label="Location">
                       <span className={r.location_verified ? styles.verified : styles.unverified}>
-                        {r.location_verified ? '✓ Verified' : '✗ Unverified'}
+                        {r.location_verified ? '✓ Verified' : '✎ Manual'}
                       </span>
                     </td>
                     <td data-label="Verified At" className={styles.time}>

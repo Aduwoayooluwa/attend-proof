@@ -3,34 +3,21 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
-  Fingerprint,
   MapPin,
   ShieldCheck,
+  Fingerprint,
+  QrCode,
+  Smartphone,
 } from 'lucide-react';
-import { APP_NAME, BRAND_IMAGE_URL } from '@/lib/brand';
+import { APP_NAME } from '@/lib/brand';
+import { LandingHeader } from '@/components/landing-header';
+import { LandingFooter } from '@/components/landing-footer';
 import styles from './page.module.css';
 
 export default function LandingPage() {
   return (
-    <div className={styles.lpPage}>
-      <header className={styles.lpHeader}>
-        <nav className={styles.lpNav} aria-label="Primary">
-          <div className={styles.lpBrand}>
-            <div className={styles.lpBrandIcon} aria-hidden="true">
-              <img src={BRAND_IMAGE_URL} alt="" className={styles.lpBrandLogo} />
-            </div>
-            <span className={styles.lpBrandName}>{APP_NAME}</span>
-          </div>
-          <div className={styles.lpNavActions}>
-            <Link href="/auth/login" className={styles.lpLoginLink}>
-              Log in
-            </Link>
-            <Link href="/auth/register" className={styles.lpSignupButton}>
-              Create account
-            </Link>
-          </div>
-        </nav>
-      </header>
+    <div className={styles.lpPage} id="top">
+      <LandingHeader />
 
       <main className={styles.lpMain}>
         <section className={styles.lpHero}>
@@ -116,7 +103,69 @@ export default function LandingPage() {
           </aside>
         </section>
 
-        <section className={styles.lpFeaturesSection}>
+        {/* How It Works Section */}
+        <section id="how-it-works" className={styles.lpStepsSection}>
+          <div className={styles.lpStepsHeader}>
+            <p className={styles.lpSectionKicker}>Simple Setup</p>
+            <h2 className={styles.lpSectionTitle}>How it protects your attendance</h2>
+            <p className={styles.lpStepsIntro}>
+              Launch a secure session in minutes, let people check in from their phones, and keep
+              records you can confidently audit later.
+            </p>
+          </div>
+
+          <div className={styles.lpStepsMetaRow} aria-label="Setup highlights">
+            <span className={styles.lpStepsMetaPill}>Average setup: under 5 minutes</span>
+            <span className={styles.lpStepsMetaPill}>No app download for attendees</span>
+            <span className={styles.lpStepsMetaPill}>Works across modern smartphones</span>
+          </div>
+
+          <div className={styles.lpStepsGrid}>
+            <article className={styles.lpStepCard}>
+              <span className={styles.lpStepNumber}>Step 01</span>
+              <div className={styles.lpStepIconWrap}>
+                <MapPin size={24} />
+              </div>
+              <div className={styles.lpStepBody}>
+                <h3 className={styles.lpStepTitle}>1. Create a radius</h3>
+                <p className={styles.lpStepDesc}>
+                  Set up a session with a strict location boundary. People can only check in if their GPS confirms they are physically on site.
+                </p>
+                <p className={styles.lpStepNote}>Ideal for classrooms, camps, offices, and event grounds.</p>
+              </div>
+            </article>
+
+            <article className={styles.lpStepCard}>
+              <span className={styles.lpStepNumber}>Step 02</span>
+              <div className={styles.lpStepIconWrap}>
+                <QrCode size={24} />
+              </div>
+              <div className={styles.lpStepBody}>
+                <h3 className={styles.lpStepTitle}>2. Attendees scan in</h3>
+                <p className={styles.lpStepDesc}>
+                  Attendees simply open a provided link or scan a QR code on arrival. No app required—it works instantly in the browser.
+                </p>
+                <p className={styles.lpStepNote}>Faster queue times and fewer onboarding issues.</p>
+              </div>
+            </article>
+
+            <article className={styles.lpStepCard}>
+              <span className={styles.lpStepNumber}>Step 03</span>
+              <div className={styles.lpStepIconWrap}>
+                <Fingerprint size={24} />
+              </div>
+              <div className={styles.lpStepBody}>
+                <h3 className={styles.lpStepTitle}>3. Biometric proof</h3>
+                <p className={styles.lpStepDesc}>
+                  In strict mode, attendees register their device. Subsequent check-ins require a Face ID or fingerprint scan, eliminating buddy-punching completely.
+                </p>
+                <p className={styles.lpStepNote}>Device-bound verification keeps your logs trustworthy.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="features" className={styles.lpFeaturesSection}>
           <div className={styles.lpSectionHeading}>
             <p className={styles.lpSectionKicker}>Core capabilities</p>
             <h2 className={styles.lpSectionTitle}>Everything needed for reliable attendance</h2>
@@ -131,6 +180,16 @@ export default function LandingPage() {
               <p className={styles.lpFeatureDescription}>
                 Define attendance zones per session so only people physically on-site can mark
                 presence.
+              </p>
+            </article>
+
+            <article className={styles.lpFeatureCard}>
+              <div className={styles.lpFeatureIconWrap} aria-hidden="true">
+                <Smartphone size={20} />
+              </div>
+              <h3 className={styles.lpFeatureTitle}>No downloads needed</h3>
+              <p className={styles.lpFeatureDescription}>
+                Because we use native browser APIs, there are no clunky apps for users to install. A 10-second check-in flow via web.
               </p>
             </article>
 
@@ -174,9 +233,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className={styles.lpFooter}>
-        <p>© {new Date().getFullYear()} {APP_NAME}. Secure attendance for modern teams.</p>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

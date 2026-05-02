@@ -79,15 +79,15 @@ export async function POST(
   }
 
   // Insert manual attendance record (location_verified = false — admin override)
-  const { error: insertError } = await serviceDb.from('attendance').insert({
+  const { data: attendance, error: insertError } = await serviceDb.from('attendance').insert({
     session_id: session.id,
     attendee_id: attendeeId,
     location_verified: false,
-  });
+  }).select('check_in_number').single();
 
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true }, { status: 201 });
+  return NextResponse.json({ success: true, checkInNumber: attendance?.check_in_number ?? null }, { status: 201 });
 }

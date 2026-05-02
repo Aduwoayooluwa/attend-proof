@@ -8,6 +8,7 @@ import {
   Fingerprint,
   QrCode,
   Smartphone,
+  Users,
 } from 'lucide-react';
 import { APP_NAME } from '@/lib/brand';
 import { LandingHeader } from '@/components/landing-header';
@@ -62,43 +63,54 @@ export default function LandingPage() {
 
           <aside className={styles.lpHeroPanel} aria-label="Attendance snapshot preview">
             <div className={styles.lpPanelHeaderRow}>
-              <p className={styles.lpPanelLabel}>Live session</p>
+              <p className={styles.lpPanelLabel}>Live session overview</p>
               <span className={styles.lpPanelStatus}>In progress</span>
             </div>
-            <h2 className={styles.lpPanelTitle}>Today&apos;s active attendance session</h2>
+            <h2 className={styles.lpPanelTitle}>A clean snapshot of today&apos;s attendance flow.</h2>
 
-            <div className={styles.lpKpiGrid}>
-              <div className={styles.lpKpiCard}>
-                <p className={styles.lpKpiValue}>142</p>
-                <p className={styles.lpKpiLabel}>Checked in</p>
+            <div className={styles.lpMonitorCard}>
+              <div className={styles.lpMonitorTopRow}>
+                <div className={styles.lpMonitorHeadingRow}>
+                  <p className={styles.lpMonitorEyebrow}>Morning Community Briefing</p>
+                  <span className={styles.lpMonitorTrend}>+14 in the last 10 min</span>
+                </div>
+                <div className={styles.lpMonitorCountRow}>
+                  <p className={styles.lpMonitorValue}>142</p>
+                  <p className={styles.lpMonitorLabel}>people checked in</p>
+                </div>
               </div>
-              <div className={styles.lpKpiCard}>
-                <p className={styles.lpKpiValue}>11</p>
-                <p className={styles.lpKpiLabel}>Outside fence</p>
-              </div>
-              <div className={styles.lpKpiCard}>
-                <p className={styles.lpKpiValue}>98%</p>
-                <p className={styles.lpKpiLabel}>Verification rate</p>
-              </div>
-              <div className={styles.lpKpiCard}>
-                <p className={styles.lpKpiValue}>3m</p>
-                <p className={styles.lpKpiLabel}>Avg. check-in time</p>
-              </div>
-            </div>
 
-            <div className={styles.lpActivityList}>
-              <div className={styles.lpActivityRow}>
-                <span className={styles.lpActivityIcon}>
-                  <Clock3 size={14} />
-                </span>
-                <p>14 new check-ins within the last 10 minutes</p>
+              <div className={styles.lpOpsGrid}>
+                <div className={styles.lpOpsCard}>
+                  <span className={styles.lpOpsIcon}>
+                    <Users size={14} />
+                  </span>
+                  <div>
+                    <p className={styles.lpOpsValue}>14</p>
+                    <p className={styles.lpOpsLabel}>arrivals in last 10 min</p>
+                  </div>
+                </div>
+                <div className={styles.lpOpsCard}>
+                  <span className={styles.lpOpsIcon}>
+                    <MapPin size={14} />
+                  </span>
+                  <div>
+                    <p className={styles.lpOpsValue}>11</p>
+                    <p className={styles.lpOpsLabel}>flagged outside radius</p>
+                  </div>
+                </div>
+                <div className={styles.lpOpsCard}>
+                  <span className={styles.lpOpsIcon}>
+                    <Clock3 size={14} />
+                  </span>
+                  <div>
+                    <p className={styles.lpOpsValue}>22s</p>
+                    <p className={styles.lpOpsLabel}>average check-in time</p>
+                  </div>
+                </div>
               </div>
-              <div className={styles.lpActivityRow}>
-                <span className={styles.lpActivityIcon}>
-                  <ShieldCheck size={14} />
-                </span>
-                <p>All records cryptographically signed</p>
-              </div>
+
+              {/* <p className={styles.lpMonitorFootnote}>Steady flow this morning, with most arrivals clearing check-in in under half a minute.</p> */}
             </div>
           </aside>
         </section>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { StepIndicator } from '@/components/ui/step-indicator';
 import { LocationGate } from '@/components/attend/location-gate';
 import { BiometricStep } from '@/components/attend/biometric-step';
@@ -17,31 +17,29 @@ interface AttendPageProps {
 }
 
 export default function AttendPage({ params }: AttendPageProps) {
-  const [token, setToken] = useState('');
+  const { token } = use(params);
   const [session, setSession] = useState<Session | null>(null);
   const [step, setStep] = useState<Step>('loading');
   const [errorReason, setErrorReason] = useState('');
   const [successName, setSuccessName] = useState('');
+  const [successCheckInNumber, setSuccessCheckInNumber] = useState<number | null>(null);
   const [strictMode, setStrictMode] = useState(false);
 
   useEffect(() => {
-    params.then(({ token: t }) => {
-      setToken(t);
-      fetch(`/api/sessions/token/${t}`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.error) { setErrorReason(data.error); setStep('error'); return; }
-          setSession(data);
-          setStrictMode(data.strict_mode === true);
-          setStep('location');
-        })
-        .catch(() => { setErrorReason('Could not load session.'); setStep('error'); });
-    });
-  }, [params]);
+    fetch(`/api/sessions/token/${token}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) { setErrorReason(data.error); setStep('error'); return; }
+        setSession(data);
+        setStrictMode(data.strict_mode === true);
+        setStep('location');
+      })
+      .catch(() => { setErrorReason('Could not load session.'); setStep('error'); });
+  }, [token]);
 
   const handleLocationPass = (lat: number, lng: number) => {
-    (window as any).__nysc_lat = lat;
-    (window as any).__nysc_lng = lng;
+    window.__nysc_lat = lat;
+    window.__nysc_lng = lng;
     // Branch: strict mode → biometric, open mode → details form
     setStep(strictMode ? 'biometric' : 'details');
   };
@@ -51,8 +49,9 @@ export default function AttendPage({ params }: AttendPageProps) {
     setStep('error');
   };
 
-  const handleDetailsSuccess = (name: string) => {
+  const handleDetailsSuccess = (name: string, checkInNumber: number | null) => {
     setSuccessName(name);
+    setSuccessCheckInNumber(checkInNumber);
     setStep('success');
   };
 
@@ -94,7 +93,11 @@ export default function AttendPage({ params }: AttendPageProps) {
             <BiometricStep
               sessionToken={token}
               orgId={session.org_id}
-              onSuccess={(name) => { setSuccessName(name); setStep('success'); }}
+              onSuccess={(name, checkInNumber) => {
+                setSuccessName(name);
+                setSuccessCheckInNumber(checkInNumber);
+                setStep('success');
+              }}
               onError={handleError}
             />
           )}
@@ -106,7 +109,11 @@ export default function AttendPage({ params }: AttendPageProps) {
             />
           )}
           {step === 'success' && session && (
-            <SuccessScreen name={successName} sessionName={session.name} />
+            <SuccessScreen
+              name={successName}
+              sessionName={session.name}
+              checkInNumber={successCheckInNumber}
+            />
           )}
           {step === 'error' && (
             <ErrorScreen

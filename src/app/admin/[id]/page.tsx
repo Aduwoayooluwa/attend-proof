@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Download, ChevronLeft, ChevronRight, UserPlus, X } from 'lucide-react';
+import { ArrowLeft, Download, ChevronLeft, ChevronRight, UserPlus, X, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,24 +20,40 @@ export default function SessionDetailPage({ params }: Props) {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
 
-  const loadRecords = async (id: string, page = 1) => {
+  const getErrorMessage = (error: unknown) =>
+    error instanceof Error ? error.message : 'Request failed.';
+
+  const loadRecords = useCallback(async (id: string, page = 1, query = search) => {
     setLoading(true);
-    const res = await fetch(`/api/sessions/${id}/attendance?page=${page}`);
+    const params = new URLSearchParams({ page: String(page) });
+    if (query) params.set('search', query);
+    const res = await fetch(`/api/sessions/${id}/attendance?${params.toString()}`);
     const resData = await res.json();
     if (res.ok) {
       setRecords(resData.data || []);
       setTotalPages(Math.ceil((resData.count || 0) / 10));
     }
     setLoading(false);
-  };
+  }, [search]);
 
   useEffect(() => {
     params.then(({ id }) => {
       setSessionId(id);
-      loadRecords(id, currentPage);
+      loadRecords(id, currentPage, search);
     });
-  }, [params, currentPage]);
+  }, [params, currentPage, search, loadRecords]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setCurrentPage(1);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // ── Manual Check-in ─────────────────────────────────────────────
   const [showManual, setShowManual] = useState(false);
@@ -57,14 +73,18 @@ export default function SessionDetailPage({ params }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      toast.success(`${manualName.trim()} checked in manually.`);
+      toast.success(
+        data.checkInNumber != null
+          ? `${manualName.trim()} checked in manually as #${data.checkInNumber}.`
+          : `${manualName.trim()} checked in manually.`,
+      );
       setManualName('');
       setManualId('');
       setShowManual(false);
       // Reload current page to show new record
       loadRecords(sessionId, currentPage);
-    } catch (err: any) {
-      toast.error(err.message ?? 'Manual check-in failed.');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || 'Manual check-in failed.');
     } finally {
       setManualLoading(false);
     }
@@ -80,9 +100,10 @@ export default function SessionDetailPage({ params }: Props) {
       const fullRecords: AttendanceWithAttendee[] = await res.json();
       
       const rows = [
-        ['S/N', 'Full Name', 'Attendee ID', 'Location Verified', 'Date', 'Time'],
+        ['S/N', 'Check-in Number', 'Full Name', 'Attendee ID', 'Location Verified', 'Date', 'Time'],
         ...fullRecords.map((r, i) => [
           (i + 1).toString(),
+          r.check_in_number?.toString() ?? '',
           r.attendees?.full_name ?? '',
           r.attendees?.identifier ?? '',
           r.location_verified ? 'Yes' : 'No',
@@ -115,6 +136,28 @@ export default function SessionDetailPage({ params }: Props) {
               <ArrowLeft size={18} />
             </Link>
             <h1 className={styles.title}>Attendance Records</h1>
+          </div>
+
+          <div className={styles.searchWrap}>
+            <Search size={14} className={styles.searchIcon} />
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search by name or attendee ID"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              aria-label="Search attendance records"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                className={styles.searchClear}
+                onClick={() => setSearchInput('')}
+                aria-label="Clear search"
+              >
+                <X size={12} />
+              </button>
+            )}
           </div>
           
           <div className={styles.headerActions}>
@@ -169,13 +212,16 @@ export default function SessionDetailPage({ params }: Props) {
         {loading ? (
           <div className={styles.loader} />
         ) : records.length === 0 ? (
-          <div className={styles.empty}>No attendance records yet.</div>
+          <div className={styles.empty}>
+            {search ? 'No matching attendance records found.' : 'No attendance records yet.'}
+          </div>
         ) : (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th className={styles.sn}>S/N</th>
+                  <th>Check-in No.</th>
                   <th>Full Name</th>
                   <th>Attendee ID</th>
                   <th>Location</th>
@@ -188,6 +234,7 @@ export default function SessionDetailPage({ params }: Props) {
                     <td data-label="S/N" className={styles.sn}>
                       <span>{(currentPage - 1) * 10 + i + 1}</span>
                     </td>
+                    <td data-label="Check-in No.">{r.check_in_number != null ? `#${r.check_in_number}` : '—'}</td>
                     <td data-label="Full Name">{r.attendees?.full_name ?? '—'}</td>
                     <td data-label="Attendee ID"><span className={styles.code}>{r.attendees?.identifier ?? '—'}</span></td>
                     <td data-label="Location">

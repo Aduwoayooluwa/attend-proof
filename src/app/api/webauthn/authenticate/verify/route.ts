@@ -5,6 +5,8 @@ import { isWithinRadius } from '@/lib/geo';
 
 const RP_ID = process.env.WEBAUTHN_RP_ID!;
 const ORIGIN = process.env.WEBAUTHN_ORIGIN!;
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Biometric verification failed.';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -62,8 +64,8 @@ export async function POST(req: NextRequest) {
       },
       requireUserVerification: true,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message ?? 'Biometric verification failed.' }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) }, { status: 400 });
   }
 
   if (!verification.verified) {
@@ -89,11 +91,15 @@ export async function POST(req: NextRequest) {
   }
 
   // 7. Record attendance
-  await db.from('attendance').insert({
+  const { data: attendance, error: insertErr } = await db.from('attendance').insert({
     session_id: session.id,
     attendee_id: attendee.id,
     location_verified: true,
-  });
+  }).select('check_in_number').single();
 
-  return NextResponse.json({ name: attendee.full_name }, { status: 200 });
+  if (insertErr) {
+    return NextResponse.json({ error: insertErr.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ name: attendee.full_name, checkInNumber: attendance?.check_in_number ?? null }, { status: 200 });
 }

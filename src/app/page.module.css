@@ -725,11 +725,13 @@
 }
 
 .lpHeroPanel {
-  background: color-mix(in srgb, var(--bg-card) 92%, transparent);
-  border: 1px solid var(--border);
-  border-radius: 22px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 94%, white 6%), color-mix(in srgb, var(--bg-card) 98%, var(--primary) 2%)),
+    var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--border) 78%, var(--primary));
+  border-radius: 24px;
   padding: 1.2rem;
-  box-shadow: var(--shadow);
+  box-shadow: 0 22px 48px rgba(26, 46, 34, 0.09);
   min-width: 0;
   overflow: hidden;
 }
@@ -759,63 +761,122 @@
 
 .lpPanelTitle {
   margin-top: 0.62rem;
-  font-size: 1.18rem;
+  max-width: 24ch;
+  font-size: 1.06rem;
   color: var(--primary);
   font-family: 'DM Serif Display', serif;
+  line-height: 1.25;
 }
 
-.lpKpiGrid {
+.lpMonitorCard {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
+.lpMonitorTopRow {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1rem 1rem;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top right, rgba(201, 169, 110, 0.18), transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--bg-card)), var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--border) 70%, var(--gold));
+}
+
+.lpMonitorHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.lpMonitorEyebrow {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.lpMonitorTrend {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--success-bg) 88%, white 12%);
+  border: 1px solid color-mix(in srgb, var(--success) 18%, transparent);
+  color: var(--success);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.3rem 0.58rem;
+  white-space: nowrap;
+}
+
+.lpMonitorCountRow {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.lpMonitorValue {
+  font-family: 'DM Serif Display', serif;
+  color: var(--primary);
+  font-size: clamp(2.9rem, 5vw, 4.2rem);
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+}
+
+.lpMonitorLabel {
+  color: color-mix(in srgb, var(--text-muted) 88%, var(--primary));
+  font-size: 0.9rem;
+}
+
+.lpOpsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.72rem;
 }
 
-.lpKpiCard {
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  border-radius: 14px;
-  padding: 0.82rem 0.9rem;
-}
-
-.lpKpiValue {
-  font-family: 'DM Serif Display', serif;
-  color: var(--primary);
-  font-size: 1.26rem;
-  line-height: 1;
-}
-
-.lpKpiLabel {
-  margin-top: 0.34rem;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-}
-
-.lpActivityList {
-  margin-top: 1rem;
+.lpOpsCard {
   display: grid;
   gap: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, white 12%);
+  background: color-mix(in srgb, var(--bg-card) 94%, white 6%);
+  border-radius: 16px;
+  padding: 0.9rem;
 }
 
-.lpActivityRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-muted);
-  font-size: 0.84rem;
-}
-
-.lpActivityIcon {
-  width: 22px;
-  height: 22px;
-  border-radius: 7px;
+.lpOpsIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
-  color: color-mix(in srgb, var(--primary) 80%, white);
-  background: var(--bg-input);
   flex-shrink: 0;
+  background: color-mix(in srgb, var(--gold) 16%, var(--bg-input));
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
+}
+
+.lpOpsValue {
+  font-family: 'DM Serif Display', serif;
+  color: var(--primary);
+  font-size: 1.42rem;
+  line-height: 1;
+}
+
+.lpOpsLabel {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.lpMonitorFootnote {
+  padding-top: 0.1rem;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  padding-left: 0.15rem;
+  border-left: 2px solid color-mix(in srgb, var(--gold) 35%, var(--border));
 }
 
 .lpFeaturesSection {
@@ -960,6 +1021,11 @@
     max-width: 600px;
   }
 
+  .lpMonitorHeadingRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .lpFeaturesGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1022,8 +1088,8 @@
     max-width: 100%;
   }
 
-  .lpKpiGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .lpOpsGrid {
+    grid-template-columns: 1fr;
   }
 
   .lpFeaturesGrid {

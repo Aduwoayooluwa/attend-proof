@@ -8,7 +8,7 @@ import styles from './details-form.module.css';
 
 interface DetailsFormProps {
   sessionToken: string;
-  onSuccess: (name: string) => void;
+  onSuccess: (name: string, checkInNumber: number | null) => void;
   onError: (reason: string) => void;
 }
 
@@ -47,7 +47,7 @@ export function DetailsForm({ sessionToken, onSuccess, onError }: DetailsFormPro
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
 
-      onSuccess(fullName.trim());
+      onSuccess(fullName.trim(), result.checkInNumber ?? null);
     } catch (err: any) {
       onError(err.message ?? 'Submission failed. Please try again.');
     } finally {

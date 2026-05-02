@@ -6,9 +6,10 @@ import styles from './success-screen.module.css';
 interface SuccessScreenProps {
   name: string;
   sessionName: string;
+  checkInNumber: number | null;
 }
 
-export function SuccessScreen({ name, sessionName }: SuccessScreenProps) {
+export function SuccessScreen({ name, sessionName, checkInNumber }: SuccessScreenProps) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.iconWrapper}>
@@ -17,6 +18,12 @@ export function SuccessScreen({ name, sessionName }: SuccessScreenProps) {
       <h2 className={styles.title}>You&rsquo;re in!</h2>
       <p className={styles.name}>{name}</p>
       <p className={styles.session}>Attendance recorded for <strong>{sessionName}</strong></p>
+      {checkInNumber != null && (
+        <div className={styles.numberCard}>
+          <span className={styles.numberLabel}>Your check-in number</span>
+          <strong className={styles.numberValue}>#{checkInNumber}</strong>
+        </div>
+      )}
       <div className={styles.badge}>✓ Verified today</div>
     </div>
   );

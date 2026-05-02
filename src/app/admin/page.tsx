@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Plus, ExternalLink, MapPin, Calendar, Trash2, Edit2, ChevronLeft, ChevronRight, X, Lock, Users } from 'lucide-react';
+import { Plus, ExternalLink, MapPin, Calendar, Trash2, Edit2, ChevronLeft, ChevronRight, X, Lock, Users, Hash } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Session } from '@/types';
@@ -22,25 +21,58 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150', strict_mode: false });
+  const [form, setForm] = useState({
+    name: '',
+    date: '',
+    location_lat: '',
+    location_lng: '',
+    radius_meters: '150',
+    queue_numbers_enabled: false,
+    strict_mode: false,
+  });
   const [formLoading, setFormLoading] = useState(false);
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const loadSessions = async (page = 1) => {
-    setLoading(true);
     const res = await fetch(`/api/sessions?page=${page}`);
     const resData = await res.json();
-    if (res.ok) {
-      setSessions(resData.data || []);
-      setTotalPages(Math.ceil((resData.count || 0) / 10));
+    if (!res.ok) {
+      throw new Error(resData.error || 'Failed to load sessions');
     }
-    setLoading(false);
+
+    return {
+      sessions: resData.data || [],
+      totalPages: Math.ceil((resData.count || 0) / 10),
+    };
   };
 
   useEffect(() => {
-    loadSessions(currentPage);
+    let cancelled = false;
+
+    setLoading(true);
+
+    void (async () => {
+      try {
+        const data = await loadSessions(currentPage);
+        if (cancelled) return;
+
+        setSessions(data.sessions);
+        setTotalPages(data.totalPages);
+      } catch (error) {
+        if (cancelled) return;
+        toast.error(error instanceof Error ? error.message : 'Failed to load sessions');
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [currentPage]);
 
   const handleCreateOrUpdate = async (e: React.FormEvent) => {
@@ -58,6 +90,7 @@ export default function AdminPage() {
         location_lat: parseFloat(form.location_lat),
         location_lng: parseFloat(form.location_lng),
         radius_meters: parseInt(form.radius_meters),
+        queue_numbers_enabled: form.queue_numbers_enabled,
         strict_mode: form.strict_mode,
       }),
     });
@@ -66,8 +99,18 @@ export default function AdminPage() {
       toast.success(editingId ? 'Session updated successfully' : 'Session created successfully');
       setShowForm(false);
       setEditingId(null);
-      setForm({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150', strict_mode: false });
-      await loadSessions(1);
+      setForm({
+        name: '',
+        date: '',
+        location_lat: '',
+        location_lng: '',
+        radius_meters: '150',
+        queue_numbers_enabled: false,
+        strict_mode: false,
+      });
+      const data = await loadSessions(1);
+      setSessions(data.sessions);
+      setTotalPages(data.totalPages);
       setCurrentPage(1);
     } else {
       const data = await res.json();
@@ -87,7 +130,10 @@ export default function AdminPage() {
       if (sessions.length === 1 && currentPage > 1) {
         setCurrentPage(prev => prev - 1);
       } else {
-        await loadSessions(currentPage);
+        const data = await loadSessions(currentPage);
+        setSessions(data.sessions);
+        setTotalPages(data.totalPages);
+        setLoading(false);
       }
     } else {
       setLoading(false);
@@ -118,6 +164,7 @@ export default function AdminPage() {
       location_lat: session.location_lat?.toString() || '',
       location_lng: session.location_lng?.toString() || '',
       radius_meters: session.radius_meters?.toString() || '150',
+      queue_numbers_enabled: session.queue_numbers_enabled ?? false,
       strict_mode: session.strict_mode ?? false,
     });
     setEditingId(session.id);
@@ -148,7 +195,19 @@ export default function AdminPage() {
             <Users size={14} /> Manage Roster
           </Link>
           <div style={{ width: 'max-content' }}>
-            <Button onClick={() => { setEditingId(null); setForm({ name: '', date: '', location_lat: '', location_lng: '', radius_meters: '150', strict_mode: false }); setShowForm(true); }}>
+            <Button onClick={() => {
+              setEditingId(null);
+              setForm({
+                name: '',
+                date: '',
+                location_lat: '',
+                location_lng: '',
+                radius_meters: '150',
+                queue_numbers_enabled: false,
+                strict_mode: false,
+              });
+              setShowForm(true);
+            }}>
               <Plus size={16} /> New Session
             </Button>
           </div>
@@ -178,6 +237,22 @@ export default function AdminPage() {
                   <Input id="s-radius" label="Radius (metres)" type="number" value={form.radius_meters} onChange={(e) => setForm({ ...form, radius_meters: e.target.value })} required />
 
                   {/* Strict Mode Toggle */}
+                  <div className={styles.toggleRow}>
+                    <div className={styles.toggleInfo}>
+                      <span className={styles.toggleLabel}><Hash size={13} /> Check-in Numbers</span>
+                      <p className={styles.toggleDesc}>Assign a unique running number to each attendee as they check in for this session.</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={form.queue_numbers_enabled}
+                      className={`${styles.toggleBtn} ${form.queue_numbers_enabled ? styles.toggleOn : ''}`}
+                      onClick={() => setForm({ ...form, queue_numbers_enabled: !form.queue_numbers_enabled })}
+                    >
+                      <span className={styles.toggleThumb} />
+                    </button>
+                  </div>
+
                   <div className={styles.toggleRow}>
                     <div className={styles.toggleInfo}>
                       <span className={styles.toggleLabel}><Lock size={13} /> Strict Mode</span>
@@ -216,6 +291,9 @@ export default function AdminPage() {
                     <h3 className={styles.sessionName}>{s.name}</h3>
                     {s.strict_mode && (
                       <span className={styles.strictBadge}><Lock size={10} /> Strict</span>
+                    )}
+                    {s.queue_numbers_enabled && (
+                      <span className={styles.strictBadge}><Hash size={10} /> Numbered</span>
                     )}
                   </div>
                   <div className={styles.meta}>

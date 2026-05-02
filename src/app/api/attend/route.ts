@@ -84,15 +84,18 @@ export async function POST(req: NextRequest) {
   }
 
   // Record attendance
-  const { error: insertError } = await db.from('attendance').insert({
+  const { data: attendance, error: insertError } = await db.from('attendance').insert({
     session_id: session.id,
     attendee_id: attendeeId,
     location_verified: true,
-  });
+  }).select('check_in_number').single();
 
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, name: fullName.trim() }, { status: 201 });
+  return NextResponse.json(
+    { success: true, name: fullName.trim(), checkInNumber: attendance?.check_in_number ?? null },
+    { status: 201 },
+  );
 }

@@ -53,6 +53,31 @@
     animation: slideUp 0.4s ease 0.35s both;
 }
 
+.numberCard {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 180px;
+    padding: 14px 18px;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--primary) 10%, white);
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+    animation: slideUp 0.4s ease 0.38s both;
+}
+
+.numberLabel {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.numberValue {
+    font-size: 32px;
+    line-height: 1;
+    color: var(--primary);
+}
+
 .badge {
     background: var(--primary);
     color: #FAF8F5;

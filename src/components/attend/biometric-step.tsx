@@ -13,11 +13,13 @@ import styles from './biometric-step.module.css';
 
 const CREDENTIAL_KEY = 'ap_credential_id';
 const ATTENDEE_KEY = 'ap_attendee_id';
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : 'Request failed.';
 
 interface BiometricStepProps {
   sessionToken: string;
   orgId: string;
-  onSuccess: (name: string) => void;
+  onSuccess: (name: string, checkInNumber: number | null) => void;
   onError: (reason: string) => void;
 }
 
@@ -61,16 +63,16 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
           attendeeId: savedAttendeeId,
           sessionToken,
           credential,
-          userLat: (window as any).__nysc_lat,
-          userLng: (window as any).__nysc_lng,
+          userLat: window.__nysc_lat,
+          userLng: window.__nysc_lng,
         }),
       });
 
       const result = await verifyRes.json();
       if (!verifyRes.ok) throw new Error(result.error);
-      onSuccess(result.name ?? 'Attendee');
-    } catch (err: any) {
-      onError(err.message ?? 'Authentication failed');
+      onSuccess(result.name ?? 'Attendee', result.checkInNumber ?? null);
+    } catch (error: unknown) {
+      onError(getErrorMessage(error) || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -105,8 +107,8 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
           orgId,
           sessionToken,
           credential,
-          userLat: (window as any).__nysc_lat,
-          userLng: (window as any).__nysc_lng,
+          userLat: window.__nysc_lat,
+          userLng: window.__nysc_lng,
         }),
       });
 
@@ -117,9 +119,9 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
       localStorage.setItem(CREDENTIAL_KEY, credential.id);
       localStorage.setItem(ATTENDEE_KEY, result.attendeeId);
 
-      onSuccess(result.name ?? 'Attendee');
-    } catch (err: any) {
-      onError(err.message ?? 'Registration failed');
+      onSuccess(result.name ?? 'Attendee', result.checkInNumber ?? null);
+    } catch (error: unknown) {
+      onError(getErrorMessage(error) || 'Registration failed');
     } finally {
       setRegistering(false);
     }

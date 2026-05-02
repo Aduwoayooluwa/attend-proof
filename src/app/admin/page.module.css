@@ -355,14 +355,27 @@
 
 @media (max-width: 768px) {
     .layoutHeader {
-        padding: 12px 12px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
+        padding: 16px 20px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .layoutHeader > div {
+        flex: 1;
+        min-width: 0;
     }
 
     .layoutTitle {
-        font-size: 20px;
+        font-size: 17px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .layoutSubtitle {
+        display: none;
     }
 
     .layoutMain {
@@ -370,8 +383,10 @@
     }
 
     .signOutBtn {
-        width: 100%;
-        text-align: center;
+        width: auto;
+        padding: 8px 14px;
+        font-size: 13px;
+        flex-shrink: 0;
     }
 
     .modalContent {

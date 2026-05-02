@@ -9,6 +9,7 @@ import {
 import { Fingerprint, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { getDeviceHash } from '@/lib/fingerprint';
 import styles from './biometric-step.module.css';
 
 const CREDENTIAL_KEY = 'ap_credential_id';
@@ -19,13 +20,25 @@ const getErrorMessage = (error: unknown) =>
 interface BiometricStepProps {
   sessionToken: string;
   orgId: string;
+  strictMode: boolean;
+  presetIdentifier?: string;
+  presetFullName?: string;
   onSuccess: (name: string, checkInNumber: number | null) => void;
   onError: (reason: string) => void;
 }
 
-export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: BiometricStepProps) {
+export function BiometricStep({
+  sessionToken,
+  orgId,
+  strictMode,
+  presetIdentifier,
+  presetFullName,
+  onSuccess,
+  onError,
+}: BiometricStepProps) {
   const [loading, setLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [fullName] = useState(presetFullName ?? '');
 
   // Check if this device already has a registered credential
   const savedCredentialId = typeof window !== 'undefined' ? localStorage.getItem(CREDENTIAL_KEY) : null;
@@ -33,8 +46,9 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
   const isReturningUser = !!savedCredentialId && !!savedAttendeeId;
 
   // Registration form state
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState(presetIdentifier ?? '');
   const [idError, setIdError] = useState('');
+  const isIdentityPreset = !!presetIdentifier;
 
   if (!browserSupportsWebAuthn()) {
     return (
@@ -50,6 +64,7 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
     if (!savedCredentialId || !savedAttendeeId) return;
     setLoading(true);
     try {
+      const deviceHash = await getDeviceHash();
       const optRes = await fetch(`/api/webauthn/authenticate/options?credentialId=${savedCredentialId}`);
       if (!optRes.ok) throw new Error(await optRes.text());
       const options = await optRes.json();
@@ -63,6 +78,7 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
           attendeeId: savedAttendeeId,
           sessionToken,
           credential,
+          deviceHash,
           userLat: window.__nysc_lat,
           userLng: window.__nysc_lng,
         }),
@@ -83,17 +99,67 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
     e.preventDefault();
     const clean = identifier.trim().toUpperCase();
     if (!clean) { setIdError('Attendee ID is required'); return; }
+    if (!strictMode && !fullName.trim()) {
+      setIdError('Complete your details before continuing.');
+      return;
+    }
     setIdError('');
     setRegistering(true);
 
     try {
+      const deviceHash = await getDeviceHash();
       // Step 1: validate the ID is in the org roster and unclaimed
-      const checkRes = await fetch(`/api/webauthn/register/options?orgId=${orgId}&identifier=${encodeURIComponent(clean)}`);
-      if (!checkRes.ok) {
-        const err = await checkRes.json();
-        throw new Error(err.error || 'Could not start registration');
+      const params = new URLSearchParams({
+        orgId,
+        sessionToken,
+        identifier: clean,
+      });
+
+      if (!strictMode && fullName.trim()) {
+        params.set('fullName', fullName.trim());
       }
-      const options = await checkRes.json();
+
+      const checkRes = await fetch(`/api/webauthn/register/options?${params.toString()}`);
+      const checkData = await checkRes.json();
+
+      if (!checkRes.ok) {
+        if (
+          checkRes.status === 409 &&
+          checkData.action === 'authenticate' &&
+          checkData.credentialId &&
+          checkData.attendeeId
+        ) {
+          const optRes = await fetch(`/api/webauthn/authenticate/options?credentialId=${checkData.credentialId}`);
+          if (!optRes.ok) throw new Error((await optRes.json()).error || 'Could not start authentication');
+          const authOptions = await optRes.json();
+
+          const authCredential = await startAuthentication({ optionsJSON: authOptions });
+
+          const verifyAuthRes = await fetch('/api/webauthn/authenticate/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              attendeeId: checkData.attendeeId,
+              sessionToken,
+              credential: authCredential,
+              deviceHash,
+              userLat: window.__nysc_lat,
+              userLng: window.__nysc_lng,
+            }),
+          });
+
+          const authResult = await verifyAuthRes.json();
+          if (!verifyAuthRes.ok) throw new Error(authResult.error);
+
+          localStorage.setItem(CREDENTIAL_KEY, checkData.credentialId);
+          localStorage.setItem(ATTENDEE_KEY, checkData.attendeeId);
+          onSuccess(authResult.name ?? checkData.name ?? 'Attendee', authResult.checkInNumber ?? null);
+          return;
+        }
+
+        throw new Error(checkData.error || 'Could not start registration');
+      }
+      const options = checkData;
 
       // Step 2: biometric registration on device
       const credential = await startRegistration({ optionsJSON: options });
@@ -107,6 +173,8 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
           orgId,
           sessionToken,
           credential,
+          fullName: strictMode ? undefined : fullName.trim(),
+          deviceHash,
           userLat: window.__nysc_lat,
           userLng: window.__nysc_lng,
         }),
@@ -156,15 +224,22 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
         Enter your Attendee ID. After verification, your biometric will be linked to your identity for all future sessions.
       </p>
       <form onSubmit={handleRegister} className={styles.form}>
-        <Input
-          id="bio-identifier"
-          label="Attendee ID"
-          placeholder=" State Code / Staff ID / Student ID"
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          error={idError}
-          autoComplete="off"
-        />
+        {isIdentityPreset ? (
+          <div className={styles.prefilledIdentity}>
+            <p className={styles.prefilledLabel}>Attendee ID</p>
+            <p className={styles.prefilledValue}>{identifier}</p>
+          </div>
+        ) : (
+          <Input
+            id="bio-identifier"
+            label="Attendee ID"
+            placeholder="State Code / Staff ID / Student ID"
+            value={identifier}
+            onChange={(e) => setIdentifier(e.target.value)}
+            error={idError}
+            autoComplete="off"
+          />
+        )}
         <Button type="submit" loading={registering}>
           Register Fingerprint / Face ID
         </Button>

@@ -8,15 +8,30 @@ const RP_NAME = process.env.WEBAUTHN_RP_NAME ?? 'AttendProof';
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const orgId = searchParams.get('orgId');
+  const sessionToken = searchParams.get('sessionToken');
   const identifier = searchParams.get('identifier')?.trim().toUpperCase();
+  const fullName = searchParams.get('fullName')?.trim();
 
-  if (!orgId || !identifier) {
-    return NextResponse.json({ error: 'orgId and identifier are required.' }, { status: 400 });
+  if (!orgId || !sessionToken || !identifier) {
+    return NextResponse.json({ error: 'orgId, sessionToken, and identifier are required.' }, { status: 400 });
   }
 
   const db = createServiceClient();
 
-  // 1. Check the identifier exists in the org's roster
+  const { data: session, error: sessionError } = await db
+    .from('sessions')
+    .select('org_id, strict_mode, passkey_required')
+    .eq('qr_token', sessionToken)
+    .single();
+
+  if (sessionError || !session || session.org_id !== orgId) {
+    return NextResponse.json({ error: 'Session not found.' }, { status: 404 });
+  }
+
+  if (!session.passkey_required) {
+    return NextResponse.json({ error: 'This session does not require passkey verification.' }, { status: 400 });
+  }
+
   const { data: attendee, error: rosterError } = await db
     .from('attendees')
     .select('id, full_name, credential_id')
@@ -24,24 +39,38 @@ export async function GET(req: NextRequest) {
     .eq('identifier', identifier)
     .maybeSingle();
 
-  if (rosterError || !attendee) {
+  if (rosterError) {
+    return NextResponse.json({ error: rosterError.message }, { status: 500 });
+  }
+
+  if (session.strict_mode && !attendee) {
     return NextResponse.json({ error: 'You are not on the attendee list for this session.' }, { status: 403 });
   }
 
-  // 2. Check the identifier is not already claimed by another device
-  if (attendee.credential_id) {
+  if (attendee?.credential_id) {
     return NextResponse.json(
-      { error: 'This Attendee ID is already registered to a device. Please use that device to check in.' },
+      {
+        error: 'This Attendee ID is already registered to a device. Authenticate to continue.',
+        action: 'authenticate',
+        attendeeId: attendee.id,
+        credentialId: attendee.credential_id,
+        name: attendee.full_name,
+      },
       { status: 409 },
     );
   }
 
-  // 3. Generate WebAuthn registration options
+  const displayName = attendee?.full_name ?? fullName;
+
+  if (!displayName) {
+    return NextResponse.json({ error: 'Full name is required for first-time passkey registration.' }, { status: 400 });
+  }
+
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
     userName: `${identifier}@org-${orgId.slice(0, 8)}`,
-    userDisplayName: attendee.full_name,
+    userDisplayName: displayName,
     attestationType: 'none',
     authenticatorSelection: {
       authenticatorAttachment: 'platform',

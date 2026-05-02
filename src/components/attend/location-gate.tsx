@@ -30,7 +30,7 @@ export function LocationGate({ onPass, onFail }: LocationGateProps) {
           onFail('Unable to get your location. Please try again.');
         }
       },
-      { enableHighAccuracy: true, timeout: 10000 },
+      { enableHighAccuracy: true, timeout: 25000 },
     );
   };
 

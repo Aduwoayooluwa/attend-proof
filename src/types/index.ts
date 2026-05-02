@@ -6,6 +6,7 @@ export interface Session {
   location_lat: number;
   location_lng: number;
   radius_meters: number;
+  passkey_required: boolean;
   queue_numbers_enabled: boolean;
   qr_token: string;
   strict_mode: boolean;
@@ -29,6 +30,7 @@ export interface Attendance {
   session_id: string;
   attendee_id: string;
   check_in_number?: number | null;
+  device_hash?: string | null;
   location_verified: boolean;
   verified_at: string;
 }

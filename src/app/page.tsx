@@ -63,54 +63,51 @@ export default function LandingPage() {
 
           <aside className={styles.lpHeroPanel} aria-label="Attendance snapshot preview">
             <div className={styles.lpPanelHeaderRow}>
-              <p className={styles.lpPanelLabel}>Live session overview</p>
+              <div className={styles.lpPanelLabelWrap}>
+                <div className={styles.lpLiveIndicator} aria-hidden="true" />
+                <p className={styles.lpPanelLabel}>Live session overview</p>
+              </div>
               <span className={styles.lpPanelStatus}>In progress</span>
             </div>
-            <h2 className={styles.lpPanelTitle}>A clean snapshot of today&apos;s attendance flow.</h2>
 
-            <div className={styles.lpMonitorCard}>
-              <div className={styles.lpMonitorTopRow}>
-                <div className={styles.lpMonitorHeadingRow}>
-                  <p className={styles.lpMonitorEyebrow}>Morning Community Briefing</p>
-                  <span className={styles.lpMonitorTrend}>+14 in the last 10 min</span>
-                </div>
-                <div className={styles.lpMonitorCountRow}>
-                  <p className={styles.lpMonitorValue}>142</p>
-                  <p className={styles.lpMonitorLabel}>people checked in</p>
-                </div>
+            {/* Big KPI */}
+            <div className={styles.lpKpiBig}>
+              <div className={styles.lpKpiLeft}>
+                <span className={styles.lpKpiSession}>Morning Community Briefing</span>
+                <p className={styles.lpKpiNumber}>142</p>
+                <p className={styles.lpKpiSub}>members checked in today</p>
               </div>
-
-              <div className={styles.lpOpsGrid}>
-                <div className={styles.lpOpsCard}>
-                  <span className={styles.lpOpsIcon}>
-                    <Users size={14} />
-                  </span>
-                  <div>
-                    <p className={styles.lpOpsValue}>14</p>
-                    <p className={styles.lpOpsLabel}>arrivals in last 10 min</p>
-                  </div>
-                </div>
-                <div className={styles.lpOpsCard}>
-                  <span className={styles.lpOpsIcon}>
-                    <MapPin size={14} />
-                  </span>
-                  <div>
-                    <p className={styles.lpOpsValue}>11</p>
-                    <p className={styles.lpOpsLabel}>flagged outside radius</p>
-                  </div>
-                </div>
-                <div className={styles.lpOpsCard}>
-                  <span className={styles.lpOpsIcon}>
-                    <Clock3 size={14} />
-                  </span>
-                  <div>
-                    <p className={styles.lpOpsValue}>22s</p>
-                    <p className={styles.lpOpsLabel}>average check-in time</p>
-                  </div>
-                </div>
+              <div className={styles.lpMockGraph} aria-hidden="true">
+                <div className={styles.lpBar} style={{ height: '38%' }} />
+                <div className={styles.lpBar} style={{ height: '52%' }} />
+                <div className={styles.lpBar} style={{ height: '44%' }} />
+                <div className={styles.lpBar} style={{ height: '68%' }} />
+                <div className={styles.lpBar} style={{ height: '57%' }} />
+                <div className={styles.lpBar} style={{ height: '82%' }} />
+                <div className={styles.lpBarActive} style={{ height: '100%' }} />
               </div>
+            </div>
 
-              {/* <p className={styles.lpMonitorFootnote}>Steady flow this morning, with most arrivals clearing check-in in under half a minute.</p> */}
+            {/* Recent check-in feed */}
+            <div className={styles.lpFeedList}>
+              <div className={styles.lpFeedRow}>
+                <div className={styles.lpFeedDot} aria-hidden="true" />
+                <span className={styles.lpFeedName}>Bola Obi</span>
+                <span className={styles.lpFeedMeta}>Just now</span>
+                <span className={styles.lpFeedBadge}>#142</span>
+              </div>
+              <div className={styles.lpFeedRow}>
+                <div className={styles.lpFeedDot} aria-hidden="true" />
+                <span className={styles.lpFeedName}>Chidi Eze</span>
+                <span className={styles.lpFeedMeta}>2m ago</span>
+                <span className={styles.lpFeedBadge}>#141</span>
+              </div>
+              <div className={styles.lpFeedRow}>
+                <div className={styles.lpFeedDot} aria-hidden="true" />
+                <span className={styles.lpFeedName}>Fatima Sule</span>
+                <span className={styles.lpFeedMeta}>4m ago</span>
+                <span className={styles.lpFeedBadge}>#140</span>
+              </div>
             </div>
           </aside>
         </section>

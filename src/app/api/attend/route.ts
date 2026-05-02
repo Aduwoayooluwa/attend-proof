@@ -4,9 +4,9 @@ import { isWithinRadius } from '@/lib/geo';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { sessionToken, fullName, identifier, userLat, userLng } = body;
+  const { sessionToken, fullName, identifier, deviceHash, userLat, userLng } = body;
 
-  if (!sessionToken || !fullName || !identifier) {
+  if (!sessionToken || !fullName || !identifier || !deviceHash) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
 
@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
 
   if (sessionError || !session) {
     return NextResponse.json({ error: 'Session not found.' }, { status: 404 });
+  }
+
+  if (session.passkey_required) {
+    return NextResponse.json({ error: 'This session requires passkey verification.' }, { status: 400 });
   }
 
   // Enforce GPS geofence server-side
@@ -46,7 +50,7 @@ export async function POST(req: NextRequest) {
   let attendeeId: string;
   const { data: existingAttendee } = await db
     .from('attendees')
-    .select('id')
+    .select('id, full_name')
     .eq('org_id', session.org_id)
     .eq('identifier', cleanIdentifier)
     .maybeSingle();
@@ -54,6 +58,13 @@ export async function POST(req: NextRequest) {
   if (existingAttendee) {
     attendeeId = existingAttendee.id;
   } else {
+    if (session.strict_mode) {
+      return NextResponse.json(
+        { error: 'You are not on the attendee list for this session.' },
+        { status: 403 },
+      );
+    }
+
     // Create new attendee record
     const { data: newAttendee, error: createError } = await db
       .from('attendees')
@@ -83,14 +94,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'You have already checked in to this session.' }, { status: 409 });
   }
 
+  const { data: existingDevice } = await db
+    .from('attendance')
+    .select('id')
+    .eq('session_id', session.id)
+    .eq('device_hash', deviceHash)
+    .maybeSingle();
+
+  if (existingDevice) {
+    return NextResponse.json(
+      { error: 'This device has already been used for attendance in this session.' },
+      { status: 409 },
+    );
+  }
+
   // Record attendance
   const { data: attendance, error: insertError } = await db.from('attendance').insert({
     session_id: session.id,
     attendee_id: attendeeId,
+    device_hash: deviceHash,
     location_verified: true,
   }).select('check_in_number').single();
 
   if (insertError) {
+    if (insertError.code === '23505') {
+      return NextResponse.json(
+        { error: 'This device has already been used for attendance in this session.' },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 

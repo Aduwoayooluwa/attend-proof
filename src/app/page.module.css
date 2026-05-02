@@ -725,149 +725,182 @@
 }
 
 .lpHeroPanel {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg-card) 94%, white 6%), color-mix(in srgb, var(--bg-card) 98%, var(--primary) 2%)),
-    var(--bg-card);
-  border: 1px solid color-mix(in srgb, var(--border) 78%, var(--primary));
-  border-radius: 24px;
-  padding: 1.2rem;
-  box-shadow: 0 22px 48px rgba(26, 46, 34, 0.09);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 12px rgba(26, 46, 34, 0.06);
   min-width: 0;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .lpPanelHeaderRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.8rem;
+}
+
+.lpPanelLabelWrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.lpLiveIndicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: lpPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes lpPulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 36%, transparent); }
+  50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--success) 0%, transparent); }
 }
 
 .lpPanelLabel {
-  color: var(--text-muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 500;
+  color: var(--text-muted);
 }
 
 .lpPanelStatus {
-  background: var(--success-bg);
-  color: var(--success);
-  font-size: 0.76rem;
+  font-size: 0.73rem;
   font-weight: 600;
+  padding: 3px 10px;
   border-radius: 999px;
-  padding: 0.25rem 0.6rem;
-  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+  background: color-mix(in srgb, var(--success-bg) 80%, var(--bg-input));
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 18%, transparent);
 }
 
-.lpPanelTitle {
-  margin-top: 0.62rem;
-  max-width: 24ch;
-  font-size: 1.06rem;
-  color: var(--primary);
-  font-family: 'DM Serif Display', serif;
-  line-height: 1.25;
-}
-
-.lpMonitorCard {
-  margin-top: 1rem;
-  display: grid;
-  gap: 0.95rem;
-}
-
-.lpMonitorTopRow {
-  display: grid;
-  gap: 0.7rem;
-  padding: 1rem 1rem 1rem;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at top right, rgba(201, 169, 110, 0.18), transparent 42%),
-    linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--bg-card)), var(--bg-card));
-  border: 1px solid color-mix(in srgb, var(--border) 70%, var(--gold));
-}
-
-.lpMonitorHeadingRow {
+/* ── KPI Big Number ── */
+.lpKpiBig {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary) 6%, var(--bg-input)),
+    color-mix(in srgb, var(--gold) 8%, var(--bg-card))
+  );
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
+  border-radius: 16px;
+  padding: 1.2rem 1.3rem;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.lpMonitorEyebrow {
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.lpKpiBig::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(201, 169, 110, 0.12), transparent 55%);
+  pointer-events: none;
+}
+
+.lpKpiLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.lpKpiSession {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-.lpMonitorTrend {
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--success-bg) 88%, white 12%);
-  border: 1px solid color-mix(in srgb, var(--success) 18%, transparent);
-  color: var(--success);
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 0.3rem 0.58rem;
-  white-space: nowrap;
-}
-
-.lpMonitorCountRow {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.lpMonitorValue {
+.lpKpiNumber {
   font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  line-height: 1;
   color: var(--primary);
-  font-size: clamp(2.9rem, 5vw, 4.2rem);
-  line-height: 0.88;
   letter-spacing: -0.03em;
 }
 
-.lpMonitorLabel {
-  color: color-mix(in srgb, var(--text-muted) 88%, var(--primary));
-  font-size: 0.9rem;
+.lpKpiSub {
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--text-muted) 90%, var(--primary));
 }
 
-.lpOpsGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.72rem;
-}
-
-.lpOpsCard {
-  display: grid;
-  gap: 0.55rem;
-  border: 1px solid color-mix(in srgb, var(--border) 88%, white 12%);
-  background: color-mix(in srgb, var(--bg-card) 94%, white 6%);
-  border-radius: 16px;
-  padding: 0.9rem;
-}
-
-.lpOpsIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* ── Mini bar chart ── */
+.lpMockGraph {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 42px;
   flex-shrink: 0;
-  background: color-mix(in srgb, var(--gold) 16%, var(--bg-input));
-  color: var(--primary);
-  border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
 }
 
-.lpOpsValue {
-  font-family: 'DM Serif Display', serif;
-  color: var(--primary);
-  font-size: 1.42rem;
-  line-height: 1;
+.lpBar {
+  width: 5px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--gold) 55%, var(--border));
 }
 
-.lpOpsLabel {
+.lpBarActive {
+  width: 5px;
+  border-radius: 3px;
+  background: var(--primary);
+}
+
+/* ── Feed rows ── */
+.lpFeedList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.lpFeedRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.62rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.lpFeedRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.lpFeedDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  flex-shrink: 0;
+}
+
+.lpFeedName {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--primary);
+  flex: 1;
+}
+
+.lpFeedMeta {
+  font-size: 0.76rem;
   color: var(--text-muted);
-  font-size: 0.74rem;
-  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.lpFeedBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 16%, var(--bg-input));
+  color: color-mix(in srgb, var(--gold) 60%, var(--primary));
+  border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
+  white-space: nowrap;
 }
 
 .lpMonitorFootnote {

@@ -43,6 +43,36 @@
     line-height: 1.7;
 }
 
+.form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.prefilledIdentity {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--bg-input);
+    padding: 12px 14px;
+}
+
+.prefilledLabel {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.prefilledValue {
+    margin: 6px 0 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
 .link {
     font-size: 13px;
     color: var(--text-muted);

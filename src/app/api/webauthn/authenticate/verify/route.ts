@@ -10,9 +10,9 @@ const getErrorMessage = (error: unknown) =>
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { attendeeId, sessionToken, credential, userLat, userLng } = body;
+  const { attendeeId, sessionToken, credential, deviceHash, userLat, userLng } = body;
 
-  if (!attendeeId || !sessionToken || !credential) {
+  if (!attendeeId || !sessionToken || !credential || !deviceHash) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
   }
 
@@ -21,12 +21,12 @@ export async function POST(req: NextRequest) {
   // 1. Validate session
   const { data: session } = await db
     .from('sessions')
-    .select('id, org_id, location_lat, location_lng, radius_meters, strict_mode')
+    .select('id, org_id, location_lat, location_lng, radius_meters, passkey_required')
     .eq('qr_token', sessionToken)
     .single();
 
-  if (!session?.strict_mode) {
-    return NextResponse.json({ error: 'This session does not require biometric authentication.' }, { status: 400 });
+  if (!session?.passkey_required) {
+    return NextResponse.json({ error: 'This session does not require passkey verification.' }, { status: 400 });
   }
 
   // 2. GPS validation
@@ -90,14 +90,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'You have already checked in to this session.' }, { status: 409 });
   }
 
+  const { data: existingDevice } = await db
+    .from('attendance')
+    .select('id')
+    .eq('session_id', session.id)
+    .eq('device_hash', deviceHash)
+    .maybeSingle();
+
+  if (existingDevice) {
+    return NextResponse.json(
+      { error: 'This device has already been used for attendance in this session.' },
+      { status: 409 },
+    );
+  }
+
   // 7. Record attendance
   const { data: attendance, error: insertErr } = await db.from('attendance').insert({
     session_id: session.id,
     attendee_id: attendee.id,
+    device_hash: deviceHash,
     location_verified: true,
   }).select('check_in_number').single();
 
   if (insertErr) {
+    if (insertErr.code === '23505') {
+      return NextResponse.json(
+        { error: 'This device has already been used for attendance in this session.' },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
 

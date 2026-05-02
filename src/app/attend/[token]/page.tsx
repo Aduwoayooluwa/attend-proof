@@ -12,6 +12,11 @@ import styles from './page.module.css';
 
 type Step = 'loading' | 'location' | 'biometric' | 'details' | 'success' | 'error';
 
+interface PendingIdentity {
+  fullName: string;
+  identifier: string;
+}
+
 interface AttendPageProps {
   params: Promise<{ token: string }>;
 }
@@ -24,6 +29,8 @@ export default function AttendPage({ params }: AttendPageProps) {
   const [successName, setSuccessName] = useState('');
   const [successCheckInNumber, setSuccessCheckInNumber] = useState<number | null>(null);
   const [strictMode, setStrictMode] = useState(false);
+  const [passkeyRequired, setPasskeyRequired] = useState(false);
+  const [pendingIdentity, setPendingIdentity] = useState<PendingIdentity | null>(null);
 
   useEffect(() => {
     fetch(`/api/sessions/token/${token}`)
@@ -32,6 +39,7 @@ export default function AttendPage({ params }: AttendPageProps) {
         if (data.error) { setErrorReason(data.error); setStep('error'); return; }
         setSession(data);
         setStrictMode(data.strict_mode === true);
+        setPasskeyRequired(data.passkey_required === true);
         setStep('location');
       })
       .catch(() => { setErrorReason('Could not load session.'); setStep('error'); });
@@ -40,8 +48,7 @@ export default function AttendPage({ params }: AttendPageProps) {
   const handleLocationPass = (lat: number, lng: number) => {
     window.__nysc_lat = lat;
     window.__nysc_lng = lng;
-    // Branch: strict mode → biometric, open mode → details form
-    setStep(strictMode ? 'biometric' : 'details');
+    setStep(passkeyRequired && strictMode ? 'biometric' : 'details');
   };
 
   const handleLocationFail = (reason: string) => {
@@ -55,12 +62,25 @@ export default function AttendPage({ params }: AttendPageProps) {
     setStep('success');
   };
 
+  const handleDetailsCollected = (details: PendingIdentity) => {
+    setPendingIdentity(details);
+    setStep('biometric');
+  };
+
   const handleError = (reason: string) => {
     setErrorReason(reason);
     setStep('error');
   };
 
-  const stepMap: Record<Step, number> = { loading: 0, location: 1, biometric: 2, details: 2, success: 3, error: 3 };
+  const totalSteps = passkeyRequired && !strictMode ? 3 : 2;
+  const stepMap: Record<Step, number> = {
+    loading: 0,
+    location: 1,
+    details: 2,
+    biometric: passkeyRequired && !strictMode ? 3 : 2,
+    success: totalSteps + 1,
+    error: totalSteps + 1,
+  };
   const stepNumber = stepMap[step];
 
   if (step === 'loading') {
@@ -82,7 +102,7 @@ export default function AttendPage({ params }: AttendPageProps) {
         </header>
 
         {step !== 'success' && step !== 'error' && (
-          <StepIndicator total={2} current={stepNumber} />
+          <StepIndicator total={totalSteps} current={stepNumber} />
         )}
 
         <main className={styles.main}>
@@ -93,6 +113,9 @@ export default function AttendPage({ params }: AttendPageProps) {
             <BiometricStep
               sessionToken={token}
               orgId={session.org_id}
+              strictMode={strictMode}
+              presetIdentifier={pendingIdentity?.identifier}
+              presetFullName={pendingIdentity?.fullName}
               onSuccess={(name, checkInNumber) => {
                 setSuccessName(name);
                 setSuccessCheckInNumber(checkInNumber);
@@ -104,7 +127,9 @@ export default function AttendPage({ params }: AttendPageProps) {
           {step === 'details' && (
             <DetailsForm
               sessionToken={token}
+              mode={passkeyRequired && !strictMode ? 'collect' : 'submit'}
               onSuccess={handleDetailsSuccess}
+              onCollected={handleDetailsCollected}
               onError={handleError}
             />
           )}

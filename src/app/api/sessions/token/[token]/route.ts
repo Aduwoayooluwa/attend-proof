@@ -10,7 +10,7 @@ export async function GET(
 
   const { data, error } = await db
     .from('sessions')
-    .select('id, name, date, radius_meters, qr_token, org_id, queue_numbers_enabled, strict_mode, organizations(name)')
+    .select('id, name, date, radius_meters, qr_token, org_id, passkey_required, queue_numbers_enabled, strict_mode, organizations(name)')
     .eq('qr_token', token)
     .single();
 

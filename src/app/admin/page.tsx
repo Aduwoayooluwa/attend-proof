@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Plus, ExternalLink, MapPin, Calendar, Trash2, Edit2, ChevronLeft, ChevronRight, X, Lock, Users, Hash } from 'lucide-react';
+import { Plus, ExternalLink, MapPin, Calendar, Trash2, Edit2, ChevronLeft, ChevronRight, X, Lock, Users, Hash, Fingerprint } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Session } from '@/types';
@@ -27,6 +27,7 @@ export default function AdminPage() {
     location_lat: '',
     location_lng: '',
     radius_meters: '150',
+    passkey_required: false,
     queue_numbers_enabled: false,
     strict_mode: false,
   });
@@ -90,6 +91,7 @@ export default function AdminPage() {
         location_lat: parseFloat(form.location_lat),
         location_lng: parseFloat(form.location_lng),
         radius_meters: parseInt(form.radius_meters),
+        passkey_required: form.passkey_required,
         queue_numbers_enabled: form.queue_numbers_enabled,
         strict_mode: form.strict_mode,
       }),
@@ -105,6 +107,7 @@ export default function AdminPage() {
         location_lat: '',
         location_lng: '',
         radius_meters: '150',
+        passkey_required: false,
         queue_numbers_enabled: false,
         strict_mode: false,
       });
@@ -164,6 +167,7 @@ export default function AdminPage() {
       location_lat: session.location_lat?.toString() || '',
       location_lng: session.location_lng?.toString() || '',
       radius_meters: session.radius_meters?.toString() || '150',
+      passkey_required: session.passkey_required ?? false,
       queue_numbers_enabled: session.queue_numbers_enabled ?? false,
       strict_mode: session.strict_mode ?? false,
     });
@@ -203,6 +207,7 @@ export default function AdminPage() {
                 location_lat: '',
                 location_lng: '',
                 radius_meters: '150',
+                passkey_required: false,
                 queue_numbers_enabled: false,
                 strict_mode: false,
               });
@@ -239,6 +244,22 @@ export default function AdminPage() {
                   {/* Strict Mode Toggle */}
                   <div className={styles.toggleRow}>
                     <div className={styles.toggleInfo}>
+                      <span className={styles.toggleLabel}><Fingerprint size={13} /> Passkey Verification</span>
+                      <p className={styles.toggleDesc}>Require attendees to register or authenticate with a passkey on their device before check-in is accepted.</p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={form.passkey_required}
+                      className={`${styles.toggleBtn} ${form.passkey_required ? styles.toggleOn : ''}`}
+                      onClick={() => setForm({ ...form, passkey_required: !form.passkey_required })}
+                    >
+                      <span className={styles.toggleThumb} />
+                    </button>
+                  </div>
+
+                  <div className={styles.toggleRow}>
+                    <div className={styles.toggleInfo}>
                       <span className={styles.toggleLabel}><Hash size={13} /> Check-in Numbers</span>
                       <p className={styles.toggleDesc}>Assign a unique running number to each attendee as they check in for this session.</p>
                     </div>
@@ -256,7 +277,7 @@ export default function AdminPage() {
                   <div className={styles.toggleRow}>
                     <div className={styles.toggleInfo}>
                       <span className={styles.toggleLabel}><Lock size={13} /> Strict Mode</span>
-                      <p className={styles.toggleDesc}>Only pre-approved attendee IDs can check in. Requires a roster to be uploaded.</p>
+                      <p className={styles.toggleDesc}>Only pre-approved attendee IDs can check in. Works with or without passkey verification.</p>
                     </div>
                     <button
                       type="button"
@@ -291,6 +312,9 @@ export default function AdminPage() {
                     <h3 className={styles.sessionName}>{s.name}</h3>
                     {s.strict_mode && (
                       <span className={styles.strictBadge}><Lock size={10} /> Strict</span>
+                    )}
+                    {s.passkey_required && (
+                      <span className={styles.strictBadge}><Fingerprint size={10} /> Passkey</span>
                     )}
                     {s.queue_numbers_enabled && (
                       <span className={styles.strictBadge}><Hash size={10} /> Numbered</span>

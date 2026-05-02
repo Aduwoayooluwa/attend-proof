@@ -33,11 +33,11 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, date, location_lat, location_lng, radius_meters, queue_numbers_enabled, strict_mode } = body;
+  const { name, date, location_lat, location_lng, radius_meters, passkey_required, queue_numbers_enabled, strict_mode } = body;
 
   const { data, error } = await db
     .from('sessions')
-    .update({ name, date, location_lat, location_lng, radius_meters, queue_numbers_enabled, strict_mode })
+    .update({ name, date, location_lat, location_lng, radius_meters, passkey_required, queue_numbers_enabled, strict_mode })
     .eq('id', id)
     .select()
     .single();

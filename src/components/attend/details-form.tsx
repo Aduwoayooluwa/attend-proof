@@ -4,15 +4,24 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { getDeviceHash } from '@/lib/fingerprint';
 import styles from './details-form.module.css';
 
 interface DetailsFormProps {
   sessionToken: string;
+  mode?: 'submit' | 'collect';
   onSuccess: (name: string, checkInNumber: number | null) => void;
   onError: (reason: string) => void;
+  onCollected?: (details: { fullName: string; identifier: string }) => void;
 }
 
-export function DetailsForm({ sessionToken, onSuccess, onError }: DetailsFormProps) {
+export function DetailsForm({
+  sessionToken,
+  mode = 'submit',
+  onSuccess,
+  onError,
+  onCollected,
+}: DetailsFormProps) {
   const [fullName, setFullName] = useState('');
   const [identifier, setIdentifier] = useState('');
   const [errors, setErrors] = useState<{ fullName?: string; identifier?: string }>({});
@@ -29,18 +38,29 @@ export function DetailsForm({ sessionToken, onSuccess, onError }: DetailsFormPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+
+    if (mode === 'collect') {
+      onCollected?.({
+        fullName: fullName.trim(),
+        identifier: identifier.trim().toUpperCase(),
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const deviceHash = await getDeviceHash();
       const res = await fetch('/api/attend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionToken,
+          deviceHash,
           fullName: fullName.trim(),
           identifier: identifier.trim().toUpperCase(),
-          userLat: (window as any).__nysc_lat,
-          userLng: (window as any).__nysc_lng,
+          userLat: window.__nysc_lat,
+          userLng: window.__nysc_lng,
         }),
       });
 

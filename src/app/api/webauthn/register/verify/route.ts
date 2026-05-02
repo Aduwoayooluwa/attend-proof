@@ -10,9 +10,9 @@ const getErrorMessage = (error: unknown) =>
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { identifier, orgId, sessionToken, credential, userLat, userLng } = body;
+  const { identifier, orgId, sessionToken, credential, fullName, deviceHash, userLat, userLng } = body;
 
-  if (!identifier || !orgId || !sessionToken || !credential) {
+  if (!identifier || !orgId || !sessionToken || !credential || !deviceHash) {
     return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
   }
 
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   // 1. Validate session
   const { data: session, error: sessionErr } = await db
     .from('sessions')
-    .select('id, org_id, location_lat, location_lng, radius_meters, strict_mode')
+    .select('id, org_id, location_lat, location_lng, radius_meters, strict_mode, passkey_required')
     .eq('qr_token', sessionToken)
     .single();
 
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Session not found.' }, { status: 404 });
   }
 
-  if (!session.strict_mode) {
-    return NextResponse.json({ error: 'This session does not require biometric registration.' }, { status: 400 });
+  if (!session.passkey_required) {
+    return NextResponse.json({ error: 'This session does not require passkey verification.' }, { status: 400 });
   }
 
   // 2. GPS validation
@@ -44,22 +44,44 @@ export async function POST(req: NextRequest) {
 
   // 3. Verify the attendee is in the roster and unclaimed
   const cleanId = identifier.trim().toUpperCase();
-  const { data: attendee } = await db
+  let attendee = (await db
     .from('attendees')
     .select('id, full_name, credential_id')
     .eq('org_id', orgId)
     .eq('identifier', cleanId)
-    .maybeSingle();
+    .maybeSingle()).data;
 
-  if (!attendee) {
+  if (!attendee && session.strict_mode) {
     return NextResponse.json({ error: 'You are not on the attendee list for this session.' }, { status: 403 });
   }
 
-  if (attendee.credential_id) {
+  if (attendee?.credential_id) {
     return NextResponse.json(
       { error: 'This Attendee ID is already registered to a device.' },
       { status: 409 },
     );
+  }
+
+  if (!attendee) {
+    if (!fullName?.trim()) {
+      return NextResponse.json({ error: 'Full name is required for first-time passkey registration.' }, { status: 400 });
+    }
+
+    const { data: newAttendee, error: createError } = await db
+      .from('attendees')
+      .insert({
+        org_id: session.org_id,
+        full_name: fullName.trim(),
+        identifier: cleanId,
+      })
+      .select('id, full_name, credential_id')
+      .single();
+
+    if (createError || !newAttendee) {
+      return NextResponse.json({ error: createError?.message ?? 'Could not create attendee.' }, { status: 500 });
+    }
+
+    attendee = newAttendee;
   }
 
   // 4. Verify the WebAuthn registration credential
@@ -108,14 +130,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'You have already checked in to this session.' }, { status: 409 });
   }
 
+  const { data: existingDevice } = await db
+    .from('attendance')
+    .select('id')
+    .eq('session_id', session.id)
+    .eq('device_hash', deviceHash)
+    .maybeSingle();
+
+  if (existingDevice) {
+    return NextResponse.json(
+      { error: 'This device has already been used for attendance in this session.' },
+      { status: 409 },
+    );
+  }
+
   // 7. Record attendance
   const { data: attendance, error: insertErr } = await db.from('attendance').insert({
     session_id: session.id,
     attendee_id: attendee.id,
+    device_hash: deviceHash,
     location_verified: true,
   }).select('check_in_number').single();
 
   if (insertErr) {
+    if (insertErr.code === '23505') {
+      return NextResponse.json(
+        { error: 'This device has already been used for attendance in this session.' },
+        { status: 409 },
+      );
+    }
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
 

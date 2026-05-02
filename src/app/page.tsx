@@ -13,6 +13,7 @@ import {
 import { APP_NAME } from '@/lib/brand';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
+import { LandingHeroCta } from '@/components/landing-hero-cta';
 import styles from './page.module.css';
 
 export default function LandingPage() {
@@ -35,15 +36,7 @@ export default function LandingPage() {
               records are accurate, auditable, and easy to manage.
             </p>
 
-            <div className={styles.lpHeroActions}>
-              <Link href="/auth/register" className={styles.lpPrimaryAction}>
-                Start with your organization
-                <ArrowRight size={18} />
-              </Link>
-              <Link href="/auth/login" className={styles.lpSecondaryAction}>
-                Go to dashboard
-              </Link>
-            </div>
+            <LandingHeroCta />
 
             <ul className={styles.lpProofList}>
               <li className={styles.lpProofItem}>

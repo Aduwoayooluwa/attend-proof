@@ -729,7 +729,7 @@
   border: 1px solid var(--border);
   border-radius: 22px;
   padding: 1.5rem;
-  box-shadow: 0 2px 12px rgba(26, 46, 34, 0.06);
+  box-shadow: var(--shadow);
   min-width: 0;
   overflow: hidden;
   display: flex;

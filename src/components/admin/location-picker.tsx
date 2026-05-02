@@ -62,7 +62,7 @@ function PlacesAutocomplete({
       <Input
         id="mapSearch"
         label="Search Address"
-        placeholder="e.g. Jamatul Islamiyya Primary School"
+        placeholder=" Jamatul Islamiyya Primary School"
         value={value}
         onChange={(e) => {
           setValue(e.target.value);

@@ -159,7 +159,7 @@ export function BiometricStep({ sessionToken, orgId, onSuccess, onError }: Biome
         <Input
           id="bio-identifier"
           label="Attendee ID"
-          placeholder="e.g. Staff ID / Student ID"
+          placeholder=" State Code / Staff ID / Student ID"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           error={idError}

@@ -64,7 +64,7 @@ export function DetailsForm({ sessionToken, onSuccess, onError }: DetailsFormPro
         <Input
           id="full-name"
           label="Full Name"
-          placeholder="e.g. Amara Okonkwo"
+          placeholder=" Bola  Obi"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           error={errors.fullName}
@@ -73,7 +73,7 @@ export function DetailsForm({ sessionToken, onSuccess, onError }: DetailsFormPro
         <Input
           id="identifier"
           label="Attendee ID"
-          placeholder="e.g. Staff ID / Student ID"
+          placeholder=" State Code / Staff ID / Student ID"
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           error={errors.identifier}

@@ -28,7 +28,7 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul>
             <li>
-              <strong>Identity Information:</strong> Full names, identifiers (e.g., student or employee IDs), and email addresses when provided by session administrators.
+              <strong>Identity Information:</strong> Full names, identifiers (, state code, student or employee IDs), and email addresses when provided by session administrators.
             </li>
             <li>
               <strong>Location Data:</strong> We access your device&apos;s GPS coordinates strictly at the moment of check-in to verify you are within the designated geofence. We do not track your location continuously.

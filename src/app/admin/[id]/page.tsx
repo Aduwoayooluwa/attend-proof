@@ -187,7 +187,7 @@ export default function SessionDetailPage({ params }: Props) {
                 <Input
                   id="manual-name"
                   label="Full Name"
-                  placeholder="e.g. Amara Okonkwo"
+                  placeholder=" Bola  Obi"
                   value={manualName}
                   onChange={(e) => setManualName(e.target.value)}
                   required
@@ -195,7 +195,7 @@ export default function SessionDetailPage({ params }: Props) {
                 <Input
                   id="manual-id"
                   label="Attendee ID"
-                  placeholder="e.g. Staff ID / Student ID"
+                  placeholder=" State Code / Staff ID / Student ID"
                   value={manualId}
                   onChange={(e) => setManualId(e.target.value)}
                   required

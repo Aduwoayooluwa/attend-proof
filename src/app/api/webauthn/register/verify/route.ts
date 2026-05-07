@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyRegistrationResponse } from '@simplewebauthn/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { isWithinRadius } from '@/lib/geo';
+import { getTicketUrl } from '@/lib/tickets';
 
 const RP_ID = process.env.WEBAUTHN_RP_ID!;
 const ORIGIN = process.env.WEBAUTHN_ORIGIN!;
@@ -150,7 +151,7 @@ export async function POST(req: NextRequest) {
     attendee_id: attendee.id,
     device_hash: deviceHash,
     location_verified: true,
-  }).select('check_in_number').single();
+  }).select('check_in_number, verified_at, ticket_token').single();
 
   if (insertErr) {
     if (insertErr.code === '23505') {
@@ -166,7 +167,11 @@ export async function POST(req: NextRequest) {
     {
       attendeeId: attendee.id,
       name: attendee.full_name,
+      identifier: cleanId,
       checkInNumber: attendance?.check_in_number ?? null,
+      verifiedAt: attendance?.verified_at ?? new Date().toISOString(),
+      ticketToken: attendance?.ticket_token,
+      ticketUrl: attendance?.ticket_token ? getTicketUrl(attendance.ticket_token) : null,
     },
     { status: 201 },
   );

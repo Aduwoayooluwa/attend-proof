@@ -30,6 +30,10 @@ export interface Attendance {
   session_id: string;
   attendee_id: string;
   check_in_number?: number | null;
+  ticket_token: string;
+  ticket_issued_at: string;
+  ticket_redeemed_at?: string | null;
+  ticket_redeemed_by?: string | null;
   device_hash?: string | null;
   location_verified: boolean;
   verified_at: string;
@@ -37,6 +41,23 @@ export interface Attendance {
 
 export interface AttendanceWithAttendee extends Attendance {
   attendees: Pick<Attendee, 'full_name' | 'identifier'>;
+}
+
+export interface AttendanceCompletion {
+  name: string;
+  identifier: string;
+  checkInNumber: number | null;
+  verifiedAt: string;
+  ticketToken: string;
+  ticketUrl: string;
+}
+
+export interface AttendanceTicketView extends AttendanceCompletion {
+  sessionName: string;
+  sessionDate: string;
+  sessionToken: string;
+  organizationName: string;
+  redeemedAt: string | null;
 }
 
 export type AttendStep = 'location' | 'biometric' | 'details' | 'success' | 'error';

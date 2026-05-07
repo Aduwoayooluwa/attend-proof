@@ -11,7 +11,7 @@ export async function GET(
   // Export grabs EVERYTHING without pagination limitations
   const { data, error } = await db
     .from('attendance')
-    .select('id, check_in_number, location_verified, verified_at, attendees(full_name, identifier)')
+    .select('id, check_in_number, ticket_redeemed_at, location_verified, verified_at, attendees(full_name, identifier)')
     .eq('session_id', id)
     .order('verified_at', { ascending: true });
 

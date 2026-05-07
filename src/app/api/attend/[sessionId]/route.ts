@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/server';
+import { getTicketUrl } from '@/lib/tickets';
 
 // Admin manual check-in — bypasses GPS, requires authenticated admin
 export async function POST(
@@ -83,11 +84,20 @@ export async function POST(
     session_id: session.id,
     attendee_id: attendeeId,
     location_verified: false,
-  }).select('check_in_number').single();
+  }).select('check_in_number, verified_at, ticket_token').single();
 
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true, checkInNumber: attendance?.check_in_number ?? null }, { status: 201 });
+  return NextResponse.json(
+    {
+      success: true,
+      checkInNumber: attendance?.check_in_number ?? null,
+      verifiedAt: attendance?.verified_at ?? new Date().toISOString(),
+      ticketToken: attendance?.ticket_token,
+      ticketUrl: attendance?.ticket_token ? getTicketUrl(attendance.ticket_token) : null,
+    },
+    { status: 201 },
+  );
 }

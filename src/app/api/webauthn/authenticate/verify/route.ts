@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { isWithinRadius } from '@/lib/geo';
+import { getTicketUrl } from '@/lib/tickets';
 
 const RP_ID = process.env.WEBAUTHN_RP_ID!;
 const ORIGIN = process.env.WEBAUTHN_ORIGIN!;
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
   // 3. Fetch attendee's stored credential
   const { data: attendee } = await db
     .from('attendees')
-    .select('id, full_name, credential_id, public_key, sign_count')
+    .select('id, full_name, identifier, credential_id, public_key, sign_count')
     .eq('id', attendeeId)
     .maybeSingle();
 
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     attendee_id: attendee.id,
     device_hash: deviceHash,
     location_verified: true,
-  }).select('check_in_number').single();
+  }).select('check_in_number, verified_at, ticket_token').single();
 
   if (insertErr) {
     if (insertErr.code === '23505') {
@@ -122,5 +123,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ name: attendee.full_name, checkInNumber: attendance?.check_in_number ?? null }, { status: 200 });
+  return NextResponse.json(
+    {
+      name: attendee.full_name,
+      identifier: attendee.identifier ?? '',
+      checkInNumber: attendance?.check_in_number ?? null,
+      verifiedAt: attendance?.verified_at ?? new Date().toISOString(),
+      ticketToken: attendance?.ticket_token,
+      ticketUrl: attendance?.ticket_token ? getTicketUrl(attendance.ticket_token) : null,
+    },
+    { status: 200 },
+  );
 }

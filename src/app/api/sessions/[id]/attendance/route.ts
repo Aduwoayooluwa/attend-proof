@@ -17,7 +17,7 @@ export async function GET(
 
   let query = db
     .from('attendance')
-    .select('id, check_in_number, location_verified, verified_at, attendees!inner(full_name, identifier)', { count: 'exact' })
+    .select('id, check_in_number, ticket_redeemed_at, location_verified, verified_at, attendees!inner(full_name, identifier)', { count: 'exact' })
     .eq('session_id', id)
     .order('verified_at', { ascending: true });
 

@@ -100,7 +100,7 @@ export default function SessionDetailPage({ params }: Props) {
       const fullRecords: AttendanceWithAttendee[] = await res.json();
       
       const rows = [
-        ['S/N', 'Check-in Number', 'Full Name', 'Attendee ID', 'Location Verified', 'Date', 'Time'],
+        ['S/N', 'Check-in Number', 'Full Name', 'Attendee ID', 'Location Verified', 'Checked-in Date', 'Checked-in Time', 'Ticket Confirmed At'],
         ...fullRecords.map((r, i) => [
           (i + 1).toString(),
           r.check_in_number?.toString() ?? '',
@@ -109,6 +109,9 @@ export default function SessionDetailPage({ params }: Props) {
           r.location_verified ? 'Yes' : 'No',
           new Date(r.verified_at).toLocaleDateString('en-NG', { timeZone: 'Africa/Lagos' }),
           new Date(r.verified_at).toLocaleTimeString('en-NG', { timeZone: 'Africa/Lagos', hour12: true }),
+          r.ticket_redeemed_at
+            ? new Date(r.ticket_redeemed_at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos', hour12: true })
+            : '',
         ]),
       ];
       const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
@@ -226,6 +229,7 @@ export default function SessionDetailPage({ params }: Props) {
                   <th>Attendee ID</th>
                   <th>Location</th>
                   <th>Verified At</th>
+                  <th>Ticket</th>
                 </tr>
               </thead>
               <tbody>
@@ -251,6 +255,13 @@ export default function SessionDetailPage({ params }: Props) {
                           {new Date(r.verified_at).toLocaleDateString('en-NG', { timeZone: 'Africa/Lagos', month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
+                    </td>
+                    <td data-label="Ticket">
+                      <span className={r.ticket_redeemed_at ? styles.verified : styles.pending}>
+                        {r.ticket_redeemed_at
+                          ? `✓ ${new Date(r.ticket_redeemed_at).toLocaleTimeString('en-NG', { timeZone: 'Africa/Lagos', hour12: true })}`
+                          : 'Awaiting scan'}
+                      </span>
                     </td>
                   </tr>
                 ))}

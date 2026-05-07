@@ -5,12 +5,13 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { getDeviceHash } from '@/lib/fingerprint';
+import type { AttendanceCompletion } from '@/types';
 import styles from './details-form.module.css';
 
 interface DetailsFormProps {
   sessionToken: string;
   mode?: 'submit' | 'collect';
-  onSuccess: (name: string, checkInNumber: number | null) => void;
+  onSuccess: (result: AttendanceCompletion) => void;
   onError: (reason: string) => void;
   onCollected?: (details: { fullName: string; identifier: string }) => void;
 }
@@ -67,7 +68,14 @@ export function DetailsForm({
       const result = await res.json();
       if (!res.ok) throw new Error(result.error);
 
-      onSuccess(fullName.trim(), result.checkInNumber ?? null);
+      onSuccess({
+        name: result.name ?? fullName.trim(),
+        identifier: result.identifier ?? identifier.trim().toUpperCase(),
+        checkInNumber: result.checkInNumber ?? null,
+        verifiedAt: result.verifiedAt,
+        ticketToken: result.ticketToken,
+        ticketUrl: result.ticketUrl,
+      });
     } catch (err: any) {
       onError(err.message ?? 'Submission failed. Please try again.');
     } finally {

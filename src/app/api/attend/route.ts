@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
 import { isWithinRadius } from '@/lib/geo';
+import { getTicketUrl } from '@/lib/tickets';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
@@ -114,7 +115,7 @@ export async function POST(req: NextRequest) {
     attendee_id: attendeeId,
     device_hash: deviceHash,
     location_verified: true,
-  }).select('check_in_number').single();
+  }).select('check_in_number, verified_at, ticket_token').single();
 
   if (insertError) {
     if (insertError.code === '23505') {
@@ -127,7 +128,15 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json(
-    { success: true, name: fullName.trim(), checkInNumber: attendance?.check_in_number ?? null },
+    {
+      success: true,
+      name: fullName.trim(),
+      identifier: cleanIdentifier,
+      checkInNumber: attendance?.check_in_number ?? null,
+      verifiedAt: attendance?.verified_at ?? new Date().toISOString(),
+      ticketToken: attendance?.ticket_token,
+      ticketUrl: attendance?.ticket_token ? getTicketUrl(attendance.ticket_token) : null,
+    },
     { status: 201 },
   );
 }

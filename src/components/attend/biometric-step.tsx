@@ -10,6 +10,7 @@ import { Fingerprint, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { getDeviceHash } from '@/lib/fingerprint';
+import type { AttendanceCompletion } from '@/types';
 import styles from './biometric-step.module.css';
 
 const CREDENTIAL_KEY = 'ap_credential_id';
@@ -23,7 +24,7 @@ interface BiometricStepProps {
   strictMode: boolean;
   presetIdentifier?: string;
   presetFullName?: string;
-  onSuccess: (name: string, checkInNumber: number | null) => void;
+  onSuccess: (result: AttendanceCompletion) => void;
   onError: (reason: string) => void;
 }
 
@@ -86,7 +87,14 @@ export function BiometricStep({
 
       const result = await verifyRes.json();
       if (!verifyRes.ok) throw new Error(result.error);
-      onSuccess(result.name ?? 'Attendee', result.checkInNumber ?? null);
+      onSuccess({
+        name: result.name ?? 'Attendee',
+        identifier: result.identifier ?? identifier.trim().toUpperCase(),
+        checkInNumber: result.checkInNumber ?? null,
+        verifiedAt: result.verifiedAt,
+        ticketToken: result.ticketToken,
+        ticketUrl: result.ticketUrl,
+      });
     } catch (error: unknown) {
       onError(getErrorMessage(error) || 'Authentication failed');
     } finally {
@@ -153,7 +161,14 @@ export function BiometricStep({
 
           localStorage.setItem(CREDENTIAL_KEY, checkData.credentialId);
           localStorage.setItem(ATTENDEE_KEY, checkData.attendeeId);
-          onSuccess(authResult.name ?? checkData.name ?? 'Attendee', authResult.checkInNumber ?? null);
+          onSuccess({
+            name: authResult.name ?? checkData.name ?? 'Attendee',
+            identifier: authResult.identifier ?? clean,
+            checkInNumber: authResult.checkInNumber ?? null,
+            verifiedAt: authResult.verifiedAt,
+            ticketToken: authResult.ticketToken,
+            ticketUrl: authResult.ticketUrl,
+          });
           return;
         }
 
@@ -187,7 +202,14 @@ export function BiometricStep({
       localStorage.setItem(CREDENTIAL_KEY, credential.id);
       localStorage.setItem(ATTENDEE_KEY, result.attendeeId);
 
-      onSuccess(result.name ?? 'Attendee', result.checkInNumber ?? null);
+      onSuccess({
+        name: result.name ?? 'Attendee',
+        identifier: result.identifier ?? clean,
+        checkInNumber: result.checkInNumber ?? null,
+        verifiedAt: result.verifiedAt,
+        ticketToken: result.ticketToken,
+        ticketUrl: result.ticketUrl,
+      });
     } catch (error: unknown) {
       onError(getErrorMessage(error) || 'Registration failed');
     } finally {

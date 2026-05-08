@@ -97,7 +97,13 @@ export default function SessionDetailPage({ params }: Props) {
     setExporting(true);
     try {
       const res = await fetch(`/api/sessions/${sessionId}/export`);
-      const fullRecords: AttendanceWithAttendee[] = await res.json();
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to export CSV');
+      }
+
+      const fullRecords: AttendanceWithAttendee[] = Array.isArray(data) ? data : [];
       
       const rows = [
         ['S/N', 'Check-in Number', 'Full Name', 'Attendee ID', 'Location Verified', 'Checked-in Date', 'Checked-in Time', 'Ticket Confirmed At'],
@@ -123,8 +129,8 @@ export default function SessionDetailPage({ params }: Props) {
       a.click();
       URL.revokeObjectURL(url);
       toast.success('Full CSV downloaded successfully');
-    } catch {
-      toast.error('Failed to export CSV');
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error) || 'Failed to export CSV');
     } finally {
       setExporting(false);
     }

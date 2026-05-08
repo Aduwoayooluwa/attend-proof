@@ -236,6 +236,7 @@ export default function AdminPage() {
                     <LocationPicker 
                       lat={form.location_lat ? parseFloat(form.location_lat) : 6.5244} 
                       lng={form.location_lng ? parseFloat(form.location_lng) : 3.3792} 
+                      radius={form.radius_meters ? parseInt(form.radius_meters, 10) : 150}
                       onChange={(lat, lng) => setForm({ ...form, location_lat: lat.toString(), location_lng: lng.toString() })} 
                     />
                   </div>

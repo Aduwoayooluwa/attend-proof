@@ -1,15 +1,17 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, Circle } from '@react-google-maps/api';
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete';
 import { Input } from '@/components/ui/input';
-import { MapPin as MapPinIcon, Loader2 } from 'lucide-react';
+import { MapPin as MapPinIcon, Loader2, LocateFixed } from 'lucide-react';
 import { toast } from 'sonner';
+import styles from './location-picker.module.css';
 
 interface LocationPickerProps {
   lat: number;
   lng: number;
+  radius: number;
   onChange: (lat: number, lng: number) => void;
 }
 
@@ -52,13 +54,13 @@ function PlacesAutocomplete({
       const results = await getGeocode({ address });
       const { lat, lng } = await getLatLng(results[0]);
       onSelect(lat, lng, address);
-    } catch (error) {
+    } catch {
       toast.error('Could not get coordinates for this location.');
     }
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', zIndex: 10 }}>
+    <div className={styles.searchWrap}>
       <Input
         id="mapSearch"
         label="Search Address"
@@ -75,26 +77,15 @@ function PlacesAutocomplete({
       />
       
       {showDropdown && status === 'OK' && (
-        <div style={{ 
-          position: 'absolute', top: '100%', left: 0, right: 0, 
-          background: 'var(--bg-card)', border: '1px solid var(--border)', 
-          borderRadius: 8, marginTop: 4, padding: '4px 0', 
-          boxShadow: '0 12px 24px rgba(0,0,0,0.1)', 
-          maxHeight: 250, overflowY: 'auto'
-        }}>
+        <div className={styles.dropdown}>
           {data.map(({ place_id, description }) => (
             <div 
               key={place_id} 
               onClick={() => handleSelect(description)}
-              style={{ 
-                padding: '10px 16px', display: 'flex', alignItems: 'flex-start', gap: 10,
-                cursor: 'pointer', transition: 'background 0.2s', fontSize: 14, color: 'var(--text-base)'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-input)'}
-              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+              className={styles.option}
             >
-              <MapPinIcon size={16} style={{ marginTop: 2, flexShrink: 0, color: 'var(--primary)' }} />
-              <span style={{ lineHeight: 1.4 }}>{description}</span>
+              <MapPinIcon size={16} className={styles.optionIcon} />
+              <span>{description}</span>
             </div>
           ))}
         </div>
@@ -103,8 +94,9 @@ function PlacesAutocomplete({
   );
 }
 
-export function LocationPicker({ lat, lng, onChange }: LocationPickerProps) {
+export function LocationPicker({ lat, lng, radius, onChange }: LocationPickerProps) {
   const mapRef = useRef<google.maps.Map | null>(null);
+  const [locating, setLocating] = useState(false);
 
   // We load the script here. 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -122,7 +114,7 @@ export function LocationPicker({ lat, lng, onChange }: LocationPickerProps) {
     }
   }, [onChange]);
 
-  const handlePlaceSelect = (newLat: number, newLng: number, address: string) => {
+  const handlePlaceSelect = (newLat: number, newLng: number) => {
     onChange(newLat, newLng);
     if (mapRef.current) {
       mapRef.current.panTo({ lat: newLat, lng: newLng });
@@ -130,9 +122,43 @@ export function LocationPicker({ lat, lng, onChange }: LocationPickerProps) {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('This device does not support location access.');
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const nextLat = coords.latitude;
+        const nextLng = coords.longitude;
+        onChange(nextLat, nextLng);
+        if (mapRef.current) {
+          mapRef.current.panTo({ lat: nextLat, lng: nextLng });
+          mapRef.current.setZoom(16);
+        }
+        toast.success('Current location applied to this session.');
+        setLocating(false);
+      },
+      (error) => {
+        const message = error.code === error.PERMISSION_DENIED
+          ? 'Location access was denied. Allow it and try again.'
+          : 'Could not get your current location.';
+        toast.error(message);
+        setLocating(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 0,
+      },
+    );
+  };
+
   if (loadError) {
     return (
-      <div style={{ padding: 16, background: 'var(--error-bg)', color: 'var(--error)', borderRadius: 8, fontSize: 14 }}>
+      <div className={styles.mapError}>
         Error loading Google Maps. Did you add `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` to your `.env.local` file?
       </div>
     );
@@ -140,18 +166,28 @@ export function LocationPicker({ lat, lng, onChange }: LocationPickerProps) {
 
   if (!isLoaded) {
     return (
-      <div style={{ height: 300, background: 'var(--bg-input)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+      <div className={styles.mapLoading}>
         <Loader2 className="spinner" size={24} />
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      
-      <PlacesAutocomplete onSelect={handlePlaceSelect} />
-      
-      <div style={{ border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+    <div className={styles.wrapper}>
+      <div className={styles.toolbar}>
+        <PlacesAutocomplete onSelect={handlePlaceSelect} />
+        <button
+          type="button"
+          className={styles.currentBtn}
+          onClick={handleUseCurrentLocation}
+          disabled={locating}
+        >
+          {locating ? <Loader2 className="spinner" size={16} /> : <LocateFixed size={16} />}
+          {locating ? 'Locating...' : 'Use My Location'}
+        </button>
+      </div>
+
+      <div className={styles.mapShell}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={{ lat, lng }}
@@ -166,13 +202,31 @@ export function LocationPicker({ lat, lng, onChange }: LocationPickerProps) {
           }}
         >
           <Marker position={{ lat, lng }} />
+          <Circle
+            center={{ lat, lng }}
+            radius={Number.isFinite(radius) && radius > 0 ? radius : 0}
+            options={{
+              fillColor: '#9E6D37',
+              fillOpacity: 0.16,
+              strokeColor: '#7A4C1E',
+              strokeOpacity: 0.85,
+              strokeWeight: 2,
+              clickable: false,
+              editable: false,
+              draggable: false,
+            }}
+          />
         </GoogleMap>
       </div>
 
-      <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
-        Click anywhere on the map to manually drop the location pin.
-      </p>
-
+      <div className={styles.mapFooter}>
+        <p style={{ margin: 0 }}>
+          Click anywhere on the map to place the session pin.
+        </p>
+        <span className={styles.coverage}>
+          Coverage: {Number.isFinite(radius) && radius > 0 ? `${radius}m` : 'Set radius'}
+        </span>
+      </div>
     </div>
   );
 }
